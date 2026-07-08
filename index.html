@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lexion - Dashboard de Barbearia & Salão</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Customizado -->
+    <link rel="stylesheet" href="index.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">L</div>
+                    <span>Lexion<span class="logo-dot">.</span></span>
+                </div>
+                <button class="sidebar-close" id="sidebar-close-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-target="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-target="agenda">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Agenda</span>
+                </a>
+                <a href="#" class="menu-item" data-target="clientes">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Clientes</span>
+                    <span class="badge badge-alert" id="badge-recall" style="display:none;">0</span>
+                </a>
+                <a href="#" class="menu-item" data-target="leads">
+                    <i class="fa-solid fa-rectangle-list"></i>
+                    <span>Kanban de Leads</span>
+                    <span class="badge badge-info" id="badge-leads" style="display:none;">0</span>
+                </a>
+                <a href="#" class="menu-item" data-target="financeiro">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Financeiro</span>
+                </a>
+                <a href="#" class="menu-item" data-target="configuracoes">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Configurações</span>
+                </a>
+                <div class="menu-divider"></div>
+                <a href="#" class="menu-item menu-item-special" data-target="simulador">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <span>Link de Agendamento</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Profile Photo" class="profile-avatar">
+                    <div class="profile-info">
+                        <span class="profile-name">Carlos Lexion</span>
+                        <span class="profile-role">Administrador</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <!-- TOP HEADER -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle-btn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 class="header-title" id="page-title">Dashboard</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" id="btn-quick-appointment">
+                            <i class="fa-solid fa-plus"></i> Novo Agendamento
+                        </button>
+                    </div>
+                    <div class="header-date" id="current-date-display">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>Quarta-feira, 8 de Julho de 2026</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- PAGES CONTAINER -->
+            <div class="pages-container">
+                <!-- 1. DASHBOARD PAGE -->
+                <section class="page-section active" id="page-dashboard">
+                    <!-- Metrics Cards Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-purple-soft">
+                                <i class="fa-solid fa-calendar-check text-purple"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Agendamentos Hoje</span>
+                                <h3 class="metric-value" id="dash-total-appts">8</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-blue-soft">
+                                <i class="fa-solid fa-circle-dollar-to-slot text-blue"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Previsão Financeira</span>
+                                <h3 class="metric-value" id="dash-expected-revenue">R$ 640</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-green-soft">
+                                <i class="fa-solid fa-money-bill-trend-up text-green"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Recebido Hoje</span>
+                                <h3 class="metric-value" id="dash-actual-revenue">R$ 300</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-effect click-tab" data-target="clientes" style="cursor: pointer;">
+                            <div class="metric-icon bg-red-soft">
+                                <i class="fa-solid fa-users-viewfinder text-red"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Clientes p/ Retorno</span>
+                                <h3 class="metric-value" id="dash-recall-count">22</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Layout Grid -->
+                    <div class="dashboard-layout">
+                        <!-- Column 1: Today's agenda list -->
+                        <div class="dashboard-panel glass-effect flex-2">
+                            <div class="panel-header">
+                                <h4 class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> Próximos Atendimentos de Hoje</h4>
+                                <span class="panel-subtitle" id="dash-agenda-subtitle">Hoje</span>
+                            </div>
+                            <div class="panel-body">
+                                <div class="atendimentos-lista" id="dash-atendimentos-list">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: CRM + Leads Quick Actions -->
+                        <div class="dashboard-side-panels">
+                            <!-- CRM Panel -->
+                            <div class="dashboard-panel glass-effect">
+                                <div class="panel-header">
+                                    <h4 class="panel-title"><i class="fa-solid fa-bullhorn text-purple"></i> Ações Recomendadas CRM</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="crm-quick-actions" id="dash-crm-list">
+                                        <!-- CRM alert list populated dynamically -->
+                                    </div>
+                                    <button class="btn btn-secondary btn-full click-tab" data-target="clientes" style="margin-top: 12px;">
+                                        Ver todos os clientes sumidos <i class="fa-solid fa-arrow-right-long" style="margin-left: 8px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Leads Panel -->
+                            <div class="dashboard-panel glass-effect">
+                                <div class="panel-header">
+                                    <h4 class="panel-title"><i class="fa-solid fa-star text-amber"></i> Conversão de Leads</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="leads-quick-stats">
+                                        <div class="lead-progress-container">
+                                            <div class="lead-progress-labels">
+                                                <span>Aguardando agendamento</span>
+                                                <strong id="dash-leads-pending-count">9 leads</strong>
+                                            </div>
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill" id="dash-leads-progress-bar" style="width: 45%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="recent-leads" id="dash-recent-leads">
+                                        <!-- Recent leads listed here -->
+                                    </div>
+                                    <button class="btn btn-secondary btn-full click-tab" data-target="leads" style="margin-top: 12px;">
+                                        Ir para o Kanban de Leads <i class="fa-solid fa-arrow-right-long" style="margin-left: 8px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. AGENDA PAGE -->
+                <section class="page-section" id="page-agenda">
+                    <div class="agenda-controls">
+                        <div class="agenda-filters">
+                            <button class="btn btn-secondary btn-active" id="btn-agenda-view-day">Dia</button>
+                            <button class="btn btn-secondary" id="btn-agenda-view-week">Semana</button>
+                            <button class="btn btn-secondary" id="btn-agenda-view-month">Mês</button>
+                        </div>
+                        <div class="agenda-navigation">
+                            <button class="btn btn-icon" id="btn-agenda-prev"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span class="agenda-current-date-title" id="agenda-current-date-title">Quarta-feira, 08/07/2026</span>
+                            <button class="btn btn-icon" id="btn-agenda-next"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div class="agenda-actions">
+                            <button class="btn btn-primary" id="btn-new-appointment">
+                                <i class="fa-solid fa-plus"></i> Agendar Horário
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Professional Switcher -->
+                    <div class="mobile-prof-switcher" id="mobile-prof-switcher">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+
+                    <!-- Interactive Calendar View -->
+                    <div class="calendar-wrapper glass-effect">
+                        <!-- Hours vs Professional Columns (Day View is standard and premium here) -->
+                        <div class="calendar-header-cols" id="calendar-header-cols">
+                            <!-- Professional header columns generated dynamically -->
+                        </div>
+                        <div class="calendar-body-scroll">
+                            <div class="calendar-time-grid">
+                                <div class="calendar-time-axis" id="calendar-time-axis">
+                                    <!-- Hours axis e.g., 08:00, 09:00, etc. -->
+                                </div>
+                                <div class="calendar-columns-container" id="calendar-columns-container">
+                                    <!-- Columns per professional, with appointments absolute-positioned inside -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Week / Month View Placeholder Container -->
+                    <div id="calendar-alternate-view" class="calendar-alternate-view glass-effect" style="display: none;">
+                        <!-- Generated dynamically if Week or Month are selected -->
+                    </div>
+                </section>
+
+                <!-- 3. CLIENTES PAGE -->
+                <section class="page-section" id="page-clientes">
+                    <div class="section-actions-bar">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="input-search-clients" placeholder="Buscar cliente por nome ou WhatsApp...">
+                        </div>
+                        <div class="filter-controls">
+                            <select id="select-filter-clients-status" class="form-control" style="width: auto;">
+                                <option value="all">Todos os Status</option>
+                                <option value="reco">Recorrentes</option>
+                                <option value="sumido">Sumidos (Atrasados)</option>
+                                <option value="novo">Novos</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="btn-add-client">
+                            <i class="fa-solid fa-user-plus"></i> Cadastrar Cliente
+                        </button>
+                    </div>
+
+                    <div class="table-container glass-effect">
+                        <table class="data-table" id="table-clients">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>WhatsApp</th>
+                                    <th>Frequência</th>
+                                    <th>Último Corte</th>
+                                    <th>Status Retorno</th>
+                                    <th>Total Gasto</th>
+                                    <th style="text-align: right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-clients">
+                                <!-- Clients list populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 4. KANBAN LEADS PAGE -->
+                <section class="page-section" id="page-leads">
+                    <div class="section-actions-bar">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="input-search-leads" placeholder="Buscar leads...">
+                        </div>
+                        <button class="btn btn-primary" id="btn-add-lead">
+                            <i class="fa-solid fa-plus"></i> Novo Lead
+                        </button>
+                    </div>
+
+                    <!-- Mobile Stages Tabs -->
+                    <div class="mobile-kanban-tabs" id="mobile-leads-tabs">
+                        <!-- Populated dynamically via JS to sync badge values -->
+                    </div>
+
+                    <!-- Kanban Board -->
+                    <div class="kanban-board">
+                        <!-- Column 1: Novo Lead -->
+                        <div class="kanban-column glass-effect" data-stage="new">
+                            <div class="kanban-column-header">
+                                <span class="column-dot bg-blue"></span>
+                                <h5 class="column-title">Novo Lead</h5>
+                                <span class="column-badge" id="badge-stage-new">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-new">
+                                <!-- Cards populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Em Conversa -->
+                        <div class="kanban-column glass-effect" data-stage="talking">
+                            <div class="kanban-column-header">
+                                <span class="column-dot bg-amber"></span>
+                                <h5 class="column-title">Em Conversa</h5>
+                                <span class="column-badge" id="badge-stage-talking">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-talking">
+                                <!-- Cards -->
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Link Enviado -->
+                        <div class="kanban-column glass-effect" data-stage="link_sent">
+                            <div class="kanban-column-header">
+                                <span class="column-dot bg-purple"></span>
+                                <h5 class="column-title">Link Enviado</h5>
+                                <span class="column-badge" id="badge-stage-link-sent">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-link_sent">
+                                <!-- Cards -->
+                            </div>
+                        </div>
+
+                        <!-- Column 4: Agendado -->
+                        <div class="kanban-column glass-effect" data-stage="scheduled">
+                            <div class="kanban-column-header">
+                                <span class="column-dot bg-green"></span>
+                                <h5 class="column-title">Agendado</h5>
+                                <span class="column-badge" id="badge-stage-scheduled">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-scheduled">
+                                <!-- Cards -->
+                            </div>
+                        </div>
+
+                        <!-- Column 5: Retorno Futuro -->
+                        <div class="kanban-column glass-effect" data-stage="follow_up">
+                            <div class="kanban-column-header">
+                                <span class="column-dot bg-indigo"></span>
+                                <h5 class="column-title">Retorno Futuro</h5>
+                                <span class="column-badge" id="badge-stage-follow-up">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-follow_up">
+                                <!-- Cards -->
+                            </div>
+                        </div>
+
+                        <!-- Column 6: Perdido -->
+                        <div class="kanban-column glass-effect" data-stage="lost">
+                            <div class="kanban-column-header">
+                                <span class="column-dot bg-gray"></span>
+                                <h5 class="column-title">Perdido</h5>
+                                <span class="column-badge" id="badge-stage-lost">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-lost">
+                                <!-- Cards -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. FINANCEIRO PAGE -->
+                <section class="page-section" id="page-financeiro">
+                    <!-- Finance Stats Summary -->
+                    <div class="metrics-grid">
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-green-soft">
+                                <i class="fa-solid fa-arrow-trend-up text-green"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Total Entradas (Mês)</span>
+                                <h3 class="metric-value text-green" id="fin-total-income">R$ 4.250</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-red-soft">
+                                <i class="fa-solid fa-arrow-trend-down text-red"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Total Saídas (Mês)</span>
+                                <h3 class="metric-value text-red" id="fin-total-expenses">R$ 1.120</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-purple-soft">
+                                <i class="fa-solid fa-scale-balanced text-purple"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Saldo / Lucro Líquido</span>
+                                <h3 class="metric-value text-purple" id="fin-net-profit">R$ 3.130</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-effect">
+                            <div class="metric-icon bg-blue-soft">
+                                <i class="fa-solid fa-chart-line text-blue"></i>
+                            </div>
+                            <div class="metric-details">
+                                <span class="metric-label">Ticket Médio</span>
+                                <h3 class="metric-value" id="fin-ticket-medio">R$ 80</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Finance Grid -->
+                    <div class="finance-grid">
+                        <!-- Chart and Lists -->
+                        <div class="dashboard-panel glass-effect flex-2">
+                            <div class="panel-header">
+                                <h4 class="panel-title"><i class="fa-solid fa-list-check"></i> Histórico de Transações</h4>
+                                <div class="finance-list-actions">
+                                    <button class="btn btn-secondary" id="btn-add-income"><i class="fa-solid fa-plus text-green"></i> Entrada</button>
+                                    <button class="btn btn-secondary" id="btn-add-expense"><i class="fa-solid fa-plus text-red"></i> Saída</button>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="table-container-embedded">
+                                    <table class="data-table small-text">
+                                        <thead>
+                                            <tr>
+                                                <th>Data</th>
+                                                <th>Tipo</th>
+                                                <th>Descrição</th>
+                                                <th>Categoria</th>
+                                                <th>Forma de Pagto</th>
+                                                <th>Valor</th>
+                                                <th style="text-align: right;">Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-transactions">
+                                            <!-- Financial records populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Side Reports -->
+                        <div class="dashboard-side-panels">
+                            <div class="dashboard-panel glass-effect">
+                                <div class="panel-header">
+                                    <h4 class="panel-title"><i class="fa-solid fa-chart-pie text-purple"></i> Faturamento por Serviço</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="chart-box-mock" id="chart-service-revenue">
+                                        <!-- Mock graph displaying bars representing revenue per service -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dashboard-panel glass-effect">
+                                <div class="panel-header">
+                                    <h4 class="panel-title"><i class="fa-solid fa-credit-card text-blue"></i> Métodos de Pagamento</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="payment-methods-stats" id="chart-payment-methods">
+                                        <!-- Mock details for payment splits (Pix, Dinheiro, etc) -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. CONFIGURAÇÕES PAGE -->
+                <section class="page-section" id="page-configuracoes">
+                    <div class="config-tabs-container">
+                        <!-- Horizontal secondary sub-navigation -->
+                        <div class="config-subnav">
+                            <button class="btn btn-secondary btn-active" data-config-tab="servicos">Serviços Oferecidos</button>
+                            <button class="btn btn-secondary" data-config-tab="profissionais">Profissionais</button>
+                            <button class="btn btn-secondary" data-config-tab="empresa">Dados do Estabelecimento</button>
+                        </div>
+
+                        <div class="config-tab-content glass-effect active" id="config-tab-servicos">
+                            <div class="panel-header-with-action">
+                                <div>
+                                    <h4 class="panel-title">Gerenciar Serviços</h4>
+                                    <p class="panel-description">Defina o preço, duração em minutos e a visibilidade no link público.</p>
+                                </div>
+                                <button class="btn btn-primary" id="btn-add-service">
+                                    <i class="fa-solid fa-plus"></i> Adicionar Serviço
+                                </button>
+                            </div>
+                            <div class="services-list-grid" id="services-config-grid">
+                                <!-- Services populated here dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="config-tab-content glass-effect" id="config-tab-profissionais" style="display:none;">
+                            <div class="panel-header-with-action">
+                                <div>
+                                    <h4 class="panel-title">Profissionais Ativos</h4>
+                                    <p class="panel-description">Gerencie a equipe e sua agenda individual no sistema.</p>
+                                </div>
+                                <button class="btn btn-primary" id="btn-add-professional">
+                                    <i class="fa-solid fa-plus"></i> Adicionar Profissional
+                                </button>
+                            </div>
+                            <div class="professionals-list-grid" id="professionals-config-grid">
+                                <!-- Professionals list populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="config-tab-content glass-effect" id="config-tab-empresa" style="display:none;">
+                            <div class="panel-header">
+                                <h4 class="panel-title">Dados do Estabelecimento</h4>
+                                <p class="panel-description">Esses dados serão exibidos na página pública de agendamento.</p>
+                            </div>
+                            <form class="config-form" id="form-business-info">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="biz-name">Nome do Salão/Barbearia</label>
+                                        <input type="text" id="biz-name" class="form-control" value="Barbearia Lexion & Estilo">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="biz-slug">Link Slug (ex: seu-nome)</label>
+                                        <div class="input-prefix-wrapper">
+                                            <span class="input-prefix">lexion.com.br/agendar/</span>
+                                            <input type="text" id="biz-slug" class="form-control" value="barbearia-lexion">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="biz-phone">WhatsApp para contato</label>
+                                        <input type="text" id="biz-phone" class="form-control" value="(11) 99999-8888">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="biz-instagram">Instagram</label>
+                                        <div class="input-prefix-wrapper">
+                                            <span class="input-prefix">@</span>
+                                            <input type="text" id="biz-instagram" class="form-control" value="barbearia.lexion">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="biz-address">Endereço Completo</label>
+                                    <input type="text" id="biz-address" class="form-control" value="Av. Paulista, 1000 - Bela Vista, São Paulo - SP">
+                                </div>
+                                <div class="form-group">
+                                    <label>Horário Geral de Funcionamento</label>
+                                    <div class="hours-grid">
+                                        <div class="hour-day-row">
+                                            <span>Segunda a Sexta</span>
+                                            <input type="time" class="form-control inline-time" value="09:00">
+                                            <span>até</span>
+                                            <input type="time" class="form-control inline-time" value="19:00">
+                                        </div>
+                                        <div class="hour-day-row">
+                                            <span>Sábado</span>
+                                            <input type="time" class="form-control inline-time" value="09:00">
+                                            <span>até</span>
+                                            <input type="time" class="form-control inline-time" value="15:00">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Salvar Alterações</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. LINK DE AGENDAMENTO SIMULADO (PORTAL DO CLIENTE) -->
+                <section class="page-section" id="page-simulador">
+                    <div class="simulator-wrapper">
+                        <!-- Left Details -->
+                        <div class="simulator-info flex-1">
+                            <h3><i class="fa-solid fa-share-nodes text-purple"></i> Link de Agendamento Inteligente</h3>
+                            <p>Este é o principal canal de captação de clientes. Os profissionais colam este link na biografia do Instagram e enviam no WhatsApp.</p>
+                            
+                            <div class="link-copier-box glass-effect">
+                                <span class="link-label">Link do seu Estabelecimento:</span>
+                                <div class="link-copier">
+                                    <code id="biz-link-url">https://lexion.com.br/agendar/barbearia-lexion</code>
+                                    <button class="btn btn-secondary btn-sm" id="btn-copy-link"><i class="fa-regular fa-copy"></i> Copiar</button>
+                                </div>
+                            </div>
+
+                            <div class="simulator-instructions-box glass-effect">
+                                <h5>Como funciona o fluxo do cliente:</h5>
+                                <ol class="sim-steps-list">
+                                    <li>O cliente seleciona um serviço no celular.</li>
+                                    <li>Escolhe o profissional de sua preferência.</li>
+                                    <li>Seleciona a data e um horário livre disponível.</li>
+                                    <li>Informa seu nome e WhatsApp (sem precisar criar conta/senhas complexas).</li>
+                                    <li><strong>O agendamento é inserido na sua agenda em tempo real!</strong></li>
+                                </ol>
+                                <div class="alert-box alert-info">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                    <span>Ao lado, você pode simular a experiência exata que o seu cliente terá no smartphone dele. Faça um teste agendando um horário!</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Phone Viewport Mock -->
+                        <div class="simulator-phone-container flex-1">
+                            <div class="iphone-frame">
+                                <div class="iphone-screen">
+                                    <!-- Phone Header / Status Bar -->
+                                    <div class="phone-status-bar">
+                                        <span class="phone-time">14:40</span>
+                                        <div class="phone-icons">
+                                            <i class="fa-solid fa-signal"></i>
+                                            <i class="fa-solid fa-wifi"></i>
+                                            <i class="fa-solid fa-battery-full"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Browser Header Simulated -->
+                                    <div class="phone-browser-header">
+                                        <i class="fa-solid fa-lock text-success" style="font-size: 10px;"></i>
+                                        <span class="browser-url">lexion.com.br/agendar/barbearia...</span>
+                                        <i class="fa-solid fa-rotate-right" style="font-size: 10px; cursor: pointer;" id="btn-reset-phone"></i>
+                                    </div>
+
+                                    <!-- Public Portal Content Box -->
+                                    <div class="phone-content" id="phone-booking-content">
+                                        <!-- Will display public booking flow dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: ADD/EDIT APPOINTMENT -->
+    <div class="modal-backdrop" id="modal-appointment">
+        <div class="modal-dialog glass-effect">
+            <div class="modal-header">
+                <h4 class="modal-title" id="appointment-modal-title">Novo Agendamento</h4>
+                <button class="modal-close" data-close-modal="modal-appointment">&times;</button>
+            </div>
+            <form id="form-appointment">
+                <input type="hidden" id="appt-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="appt-client-select">Cliente</label>
+                        <div class="input-select-plus">
+                            <select id="appt-client-select" class="form-control" required>
+                                <!-- Populated dynamically -->
+                            </select>
+                            <button type="button" class="btn btn-secondary" id="btn-quick-add-client-from-appt" title="Cadastrar novo cliente">
+                                <i class="fa-solid fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="appt-service-select">Serviço</label>
+                            <select id="appt-service-select" class="form-control" required>
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="appt-prof-select">Profissional</label>
+                            <select id="appt-prof-select" class="form-control" required>
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="appt-date">Data</label>
+                            <input type="date" id="appt-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="appt-time">Horário</label>
+                            <input type="time" id="appt-time" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="appt-status">Status Atendimento</label>
+                            <select id="appt-status" class="form-control">
+                                <option value="scheduled">Agendado</option>
+                                <option value="confirmed">Confirmado</option>
+                                <option value="done">Concluído (Realizado)</option>
+                                <option value="no_show">Faltou (Não Compareceu)</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="appt-payment">Status Financeiro</label>
+                            <select id="appt-payment" class="form-control">
+                                <option value="pending">Pendente (Não Pago)</option>
+                                <option value="paid">Pago (Recebido)</option>
+                                <option value="free">Cortesia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="appt-payment-method">Forma de Pagamento (se pago)</label>
+                        <select id="appt-payment-method" class="form-control">
+                            <option value="pix">Pix</option>
+                            <option value="credit_card">Cartão de Crédito</option>
+                            <option value="debit_card">Cartão de Débito</option>
+                            <option value="cash">Dinheiro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="appt-notes">Observações</label>
+                        <textarea id="appt-notes" class="form-control" rows="2" placeholder="Observações do atendimento, restrições, etc."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-appointment">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-delete-appointment" style="display:none; margin-right: auto;">Excluir</button>
+                    <button type="submit" class="btn btn-primary">Salvar Agendamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD/EDIT CLIENT -->
+    <div class="modal-backdrop" id="modal-client">
+        <div class="modal-dialog glass-effect">
+            <div class="modal-header">
+                <h4 class="modal-title" id="client-modal-title">Cadastrar Cliente</h4>
+                <button class="modal-close" data-close-modal="modal-client">&times;</button>
+            </div>
+            <form id="form-client">
+                <input type="hidden" id="client-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="client-name">Nome Completo</label>
+                        <input type="text" id="client-name" class="form-control" placeholder="Ex: João da Silva" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="client-phone">WhatsApp/Telefone</label>
+                            <input type="text" id="client-phone" class="form-control" placeholder="Ex: (11) 99999-8888" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-instagram">Instagram</label>
+                            <input type="text" id="client-instagram" class="form-control" placeholder="Ex: @joao.silva">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="client-birth">Data de Nascimento</label>
+                            <input type="date" id="client-birth" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="client-frequency">Frequência Média de Retorno (dias)</label>
+                            <input type="number" id="client-frequency" class="form-control" placeholder="Ex: 21" min="1" value="30">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-notes">Observações</label>
+                        <textarea id="client-notes" class="form-control" rows="3" placeholder="Gostos do cliente, detalhes específicos de cortes anteriores..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-client">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD/EDIT LEAD -->
+    <div class="modal-backdrop" id="modal-lead">
+        <div class="modal-dialog glass-effect">
+            <div class="modal-header">
+                <h4 class="modal-title" id="lead-modal-title">Novo Lead de Contato</h4>
+                <button class="modal-close" data-close-modal="modal-lead">&times;</button>
+            </div>
+            <form id="form-lead">
+                <input type="hidden" id="lead-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="lead-name">Nome do Lead</label>
+                        <input type="text" id="lead-name" class="form-control" placeholder="Ex: Maria Souza" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lead-phone">WhatsApp/Telefone</label>
+                            <input type="text" id="lead-phone" class="form-control" placeholder="Ex: (11) 98888-7777" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lead-source">Origem do Lead</label>
+                            <select id="lead-source" class="form-control">
+                                <option value="instagram">Instagram Direct</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="manual">Manual/Presencial</option>
+                                <option value="website">Site/Link</option>
+                                <option value="referral">Indicação</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lead-stage">Coluna (Estágio)</label>
+                        <select id="lead-stage" class="form-control">
+                            <option value="new">Novo Lead</option>
+                            <option value="talking">Em Conversa</option>
+                            <option value="link_sent">Link de Agendamento Enviado</option>
+                            <option value="scheduled">Agendado</option>
+                            <option value="follow_up">Retorno Futuro</option>
+                            <option value="lost">Perdido / Sem Retorno</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lead-notes">Notas da Conversa</label>
+                        <textarea id="lead-notes" class="form-control" rows="3" placeholder="Escreva o que ela perguntou, valores enviados, etc..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-lead">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-delete-lead" style="display:none; margin-right: auto;">Excluir</button>
+                    <button type="submit" class="btn btn-primary">Salvar Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD TRANSACTION -->
+    <div class="modal-backdrop" id="modal-transaction">
+        <div class="modal-dialog glass-effect">
+            <div class="modal-header">
+                <h4 class="modal-title" id="transaction-modal-title">Registrar Transação</h4>
+                <button class="modal-close" data-close-modal="modal-transaction">&times;</button>
+            </div>
+            <form id="form-transaction">
+                <input type="hidden" id="trans-type">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trans-amount">Valor (R$)</label>
+                            <input type="number" id="trans-amount" class="form-control" step="0.01" min="0.01" placeholder="Ex: 50.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="trans-date">Data</label>
+                            <input type="date" id="trans-date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="trans-description">Descrição</label>
+                        <input type="text" id="trans-description" class="form-control" placeholder="Ex: Compra de Shampoos / Corte João" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trans-category">Categoria</label>
+                            <select id="trans-category" class="form-control" required>
+                                <!-- Options depend on Income / Expense -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="trans-method">Forma de Pagamento</label>
+                            <select id="trans-method" class="form-control" required>
+                                <option value="pix">Pix</option>
+                                <option value="credit_card">Cartão de Crédito</option>
+                                <option value="debit_card">Cartão de Débito</option>
+                                <option value="cash">Dinheiro</option>
+                                <option value="other">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-transaction">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD SERVICE -->
+    <div class="modal-backdrop" id="modal-service">
+        <div class="modal-dialog glass-effect">
+            <div class="modal-header">
+                <h4 class="modal-title">Novo Serviço</h4>
+                <button class="modal-close" data-close-modal="modal-service">&times;</button>
+            </div>
+            <form id="form-service">
+                <input type="hidden" id="service-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="service-name">Nome do Serviço</label>
+                        <input type="text" id="service-name" class="form-control" placeholder="Ex: Corte Degradê + Barba" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="service-price">Preço (R$)</label>
+                            <input type="number" id="service-price" class="form-control" step="0.01" min="0" placeholder="Ex: 60.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="service-duration">Duração (minutos)</label>
+                            <input type="number" id="service-duration" class="form-control" min="5" placeholder="Ex: 30" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="service-active" checked>
+                            <span class="checkmark"></span>
+                            Ativo e visível no agendamento público
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-service">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-delete-service" style="display:none; margin-right: auto;">Excluir</button>
+                    <button type="submit" class="btn btn-primary">Salvar Serviço</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD PROFESSIONAL -->
+    <div class="modal-backdrop" id="modal-professional">
+        <div class="modal-dialog glass-effect">
+            <div class="modal-header">
+                <h4 class="modal-title">Novo Profissional</h4>
+                <button class="modal-close" data-close-modal="modal-professional">&times;</button>
+            </div>
+            <form id="form-professional">
+                <input type="hidden" id="prof-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="prof-name">Nome do Profissional</label>
+                        <input type="text" id="prof-name" class="form-control" placeholder="Ex: Carlos Albuquerque" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prof-phone">WhatsApp/Telefone</label>
+                        <input type="text" id="prof-phone" class="form-control" placeholder="Ex: (11) 97777-6666" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="prof-active" checked>
+                            <span class="checkmark"></span>
+                            Ativo (recebe agendamentos)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-professional">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-delete-professional" style="display:none; margin-right: auto;">Excluir</button>
+                    <button type="submit" class="btn btn-primary">Salvar Profissional</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: WHATSAPP CRM MOCK SIMULATOR -->
+    <div class="modal-backdrop" id="modal-whatsapp-crm">
+        <div class="modal-dialog glass-effect whatsapp-dialog">
+            <div class="modal-header wa-header">
+                <div class="wa-user-info">
+                    <div class="wa-avatar"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <h4 class="modal-title wa-title" id="wa-chat-name">Nome do Cliente</h4>
+                        <span class="wa-status">Online</span>
+                    </div>
+                </div>
+                <button class="modal-close wa-close" data-close-modal="modal-whatsapp-crm">&times;</button>
+            </div>
+            <div class="modal-body wa-chat-body">
+                <div class="wa-chat-container">
+                    <div class="wa-message wa-msg-received">
+                        <div class="wa-msg-bubble">
+                            <p>Olá! Quero agendar um corte de cabelo.</p>
+                            <span class="wa-msg-time">Ontem</span>
+                        </div>
+                    </div>
+                    <div class="wa-message wa-msg-sent">
+                        <div class="wa-msg-bubble">
+                            <p>Olá! Tudo bem? Claro, você pode agendar direto pelo nosso link: <a href="#" id="wa-link-placeholder" class="text-underline">lexion.com.br/agendar/barbearia</a></p>
+                            <span class="wa-msg-time">Ontem</span>
+                        </div>
+                    </div>
+                    <!-- Template to draft message -->
+                    <div class="wa-chat-draft-box">
+                        <span class="draft-label">Sugestão de Mensagem de Retorno:</span>
+                        <div class="draft-content-text" id="wa-message-draft">
+                            <!-- Draft text generated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer wa-footer">
+                <button type="button" class="btn btn-secondary" data-close-modal="modal-whatsapp-crm">Fechar</button>
+                <a href="#" target="_blank" class="btn btn-success" id="btn-send-real-whatsapp">
+                    <i class="fa-brands fa-whatsapp"></i> Simular Envio no WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Tab Bar -->
+    <nav class="mobile-tab-bar">
+        <a href="#" class="tab-item active" data-target="dashboard">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Início</span>
+        </a>
+        <a href="#" class="tab-item" data-target="agenda">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Agenda</span>
+        </a>
+        <a href="#" class="tab-item" data-target="clientes">
+            <i class="fa-solid fa-users"></i>
+            <span>Clientes</span>
+        </a>
+        <a href="#" class="tab-item" data-target="leads">
+            <i class="fa-solid fa-rectangle-list"></i>
+            <span>Leads</span>
+        </a>
+        <a href="#" class="tab-item" data-target="financeiro">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Finanças</span>
+        </a>
+    </nav>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript Principal -->
+    <script src="app.js"></script>
+</body>
+</html>
