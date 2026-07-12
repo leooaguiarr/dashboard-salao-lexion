@@ -12,7 +12,9 @@ const STATE_KEYS = {
     APPOINTMENTS: 'lexion_appointments',
     LEADS: 'lexion_leads',
     TRANSACTIONS: 'lexion_transactions',
-    BUSINESS_INFO: 'lexion_business_info'
+    BUSINESS_INFO: 'lexion_business_info',
+    AUTOMATION_RULES: 'lexion_automation_rules',
+    MESSAGE_JOBS: 'lexion_message_jobs'
 };
 
 // Target Date for our Prototype: July 8, 2026
@@ -135,6 +137,23 @@ function initMockDatabase() {
         };
         localStorage.setItem(STATE_KEYS.BUSINESS_INFO, JSON.stringify(defaultBiz));
     }
+
+    if (!localStorage.getItem(STATE_KEYS.AUTOMATION_RULES)) {
+        localStorage.setItem(STATE_KEYS.AUTOMATION_RULES, JSON.stringify([
+            { id: 'rule-confirm', name: 'Confirmar agendamento', description: '24 horas antes', icon: 'fa-circle-check', enabled: true },
+            { id: 'rule-reminder', name: 'Lembrete final', description: '2 horas antes', icon: 'fa-clock', enabled: true },
+            { id: 'rule-followup', name: 'Pós-atendimento', description: '2 horas depois', icon: 'fa-star', enabled: true }
+        ]));
+    }
+
+    if (!localStorage.getItem(STATE_KEYS.MESSAGE_JOBS)) {
+        localStorage.setItem(STATE_KEYS.MESSAGE_JOBS, JSON.stringify([
+            { id: 'msg-1', appointmentId: 'appt-9', clientId: 'cli-2', type: 'confirmation', scheduledAt: '2026-07-08T10:00', status: 'pending', text: 'Confirme seu corte amanhã às 10:00.' },
+            { id: 'msg-2', appointmentId: 'appt-10', clientId: 'cli-4', type: 'confirmation', scheduledAt: '2026-07-08T14:00', status: 'delivered', text: 'Seu horário está reservado para amanhã às 14:00.' },
+            { id: 'msg-3', appointmentId: 'appt-6', clientId: 'cli-3', type: 'reminder', scheduledAt: '2026-07-08T13:30', status: 'failed', text: 'Lembrete: seu corte é hoje às 15:30.' },
+            { id: 'msg-4', appointmentId: 'appt-7', clientId: 'cli-7', type: 'confirmation', scheduledAt: '2026-07-08T10:00', status: 'replied', response: 'Confirmado', text: 'Confirme seu combo hoje às 16:30.' }
+        ]));
+    }
 }
 
 // Global data objects loaded from localStorage
@@ -145,7 +164,9 @@ let data = {
     appointments: [],
     leads: [],
     transactions: [],
-    businessInfo: {}
+    businessInfo: {},
+    automationRules: [],
+    messageJobs: []
 };
 
 function loadData() {
@@ -156,6 +177,8 @@ function loadData() {
     data.leads = JSON.parse(localStorage.getItem(STATE_KEYS.LEADS)) || [];
     data.transactions = JSON.parse(localStorage.getItem(STATE_KEYS.TRANSACTIONS)) || [];
     data.businessInfo = JSON.parse(localStorage.getItem(STATE_KEYS.BUSINESS_INFO)) || {};
+    data.automationRules = JSON.parse(localStorage.getItem(STATE_KEYS.AUTOMATION_RULES)) || [];
+    data.messageJobs = JSON.parse(localStorage.getItem(STATE_KEYS.MESSAGE_JOBS)) || [];
 }
 
 function saveData(key, value) {
@@ -181,6 +204,11 @@ function getLocalDateString(date) {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+}
+
+function timeToMinutes(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
 }
 
 // Calculate days between two dates
@@ -307,6 +335,9 @@ function renderPageData(pageId) {
             break;
         case 'agenda':
             renderAgenda();
+            break;
+        case 'mensagens':
+            renderMessages();
             break;
         case 'clientes':
             renderClients();
@@ -675,6 +706,7 @@ function renderAgenda() {
                     <div class="event-title">${client.name}</div>
                     <div class="event-desc">${service.name} (${service.duration}m)</div>
                     <div class="event-time">${appt.time}</div>
+                    ${renderAppointmentCommunicationBadge(appt.id)}
                 `;
                 
                 // Clicking event opens edit modal
@@ -704,14 +736,17 @@ function renderAgenda() {
 }
 
 // Navigation helpers for agenda
+let currentAgendaView = 'day';
 document.getElementById('btn-agenda-prev').addEventListener('click', () => {
-    currentSelectedDate.setDate(currentSelectedDate.getDate() - 1);
-    renderAgenda();
+    if (currentAgendaView === 'month') currentSelectedDate.setMonth(currentSelectedDate.getMonth() - 1);
+    else currentSelectedDate.setDate(currentSelectedDate.getDate() - (currentAgendaView === 'week' ? 7 : 1));
+    currentAgendaView === 'day' ? renderAgenda() : renderAlternateCalendar(currentAgendaView);
 });
 
 document.getElementById('btn-agenda-next').addEventListener('click', () => {
-    currentSelectedDate.setDate(currentSelectedDate.getDate() + 1);
-    renderAgenda();
+    if (currentAgendaView === 'month') currentSelectedDate.setMonth(currentSelectedDate.getMonth() + 1);
+    else currentSelectedDate.setDate(currentSelectedDate.getDate() + (currentAgendaView === 'week' ? 7 : 1));
+    currentAgendaView === 'day' ? renderAgenda() : renderAlternateCalendar(currentAgendaView);
 });
 
 // View switch placeholders (simulated alert info)
@@ -724,22 +759,15 @@ agendaViewButtons.forEach(btn => {
         const wrapper = document.querySelector('.calendar-wrapper');
         const altView = document.getElementById('calendar-alternate-view');
         
-        if (btn.id === 'btn-agenda-view-day') {
+        currentAgendaView = btn.id.replace('btn-agenda-view-', '');
+        if (currentAgendaView === 'day') {
             wrapper.style.display = 'flex';
             altView.style.display = 'none';
             renderAgenda();
         } else {
             wrapper.style.display = 'none';
             altView.style.display = 'block';
-            altView.innerHTML = `
-                <div style="padding: 50px 20px;">
-                    <i class="fa-solid fa-circle-nodes" style="font-size: 40px; color: var(--primary); margin-bottom: 20px;"></i>
-                    <h4>Visualização de ${btn.innerText}</h4>
-                    <p style="color: var(--text-muted); max-width: 400px; margin: 8px auto 0;">
-                        No protótipo funcional, a tela de <strong>Dia</strong> é interativa por colunas de profissionais. As telas de Semana/Mês usam a mesma lógica agregada por blocos.
-                    </p>
-                </div>
-            `;
+            renderAlternateCalendar(currentAgendaView);
         }
     });
 });
@@ -758,6 +786,7 @@ function openNewAppointmentModal(profId = '', timeVal = '09:00') {
     }
     
     document.getElementById('btn-delete-appointment').style.display = 'none';
+    renderAppointmentMessageTimeline('');
     openModal('modal-appointment');
 }
 
@@ -809,6 +838,7 @@ function openEditAppointment(apptId) {
     
     // Show delete button
     document.getElementById('btn-delete-appointment').style.display = 'block';
+    renderAppointmentMessageTimeline(apptId);
     openModal('modal-appointment');
 }
 
@@ -829,19 +859,20 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
 
     const newAppt = { id, clientId, serviceId, profId, date, time, status, paymentStatus, paymentMethod, notes };
     
-    // Conflit validation simulation: Check if professional has another appt in same slots
-    // For prototype simplicity, just notify and check if times match exactly.
-    const conflict = data.appointments.find(a => 
-        a.profId === profId && 
-        a.date === date && 
-        a.time === time && 
-        a.id !== id &&
-        a.status !== 'cancelled'
-    );
+    const selectedService = data.services.find(s => s.id === serviceId);
+    const newStart = timeToMinutes(time);
+    const newEnd = newStart + (selectedService?.duration || 30);
+    const conflict = data.appointments.find(a => {
+        if (a.profId !== profId || a.date !== date || a.id === id || a.status === 'cancelled') return false;
+        const existingService = data.services.find(s => s.id === a.serviceId);
+        const existingStart = timeToMinutes(a.time);
+        const existingEnd = existingStart + (existingService?.duration || 30);
+        return newStart < existingEnd && newEnd > existingStart;
+    });
     
     if (conflict) {
         const otherClient = data.clients.find(c => c.id === conflict.clientId) || {name: 'Outro'};
-        showToast(`Conflito: Profissional ocupado com ${otherClient.name} às ${time}!`, 'danger');
+        showToast(`Conflito: o horário sobrepõe o atendimento de ${otherClient.name}.`, 'danger');
         return;
     }
 
@@ -868,6 +899,7 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
 
     // Save
     saveData(STATE_KEYS.APPOINTMENTS, data.appointments);
+    syncAppointmentMessages(newAppt);
     closeModal('modal-appointment');
     
     // Update CRM / Last Visit on client completion
@@ -1011,6 +1043,7 @@ function renderClients() {
                             <i class="fa-brands fa-whatsapp text-success"></i> Chamar
                         </button>
                     ` : ''}
+                    <button class="btn btn-secondary btn-sm" onclick="openClientDetail('${cli.id}')"><i class="fa-solid fa-eye"></i> Ver</button>
                     <button class="btn btn-icon btn-sm" onclick="openEditClient('${cli.id}')"><i class="fa-solid fa-pen"></i></button>
                 </div>
             </td>
@@ -2089,6 +2122,215 @@ window.resetSimToStep1 = function() {
     initPhoneSimulator();
 };
 
+// --- MOBILE-FIRST AGENDA, CLIENT 360 & AUTOMATION DEMO ---
+function dateFromLocalString(value) {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function addDays(date, amount) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + amount);
+    return result;
+}
+
+function renderAlternateCalendar(view) {
+    const altView = document.getElementById('calendar-alternate-view');
+    const title = document.getElementById('agenda-current-date-title');
+    altView.style.display = 'block';
+    if (view === 'week') {
+        const monday = new Date(currentSelectedDate);
+        const weekday = monday.getDay() || 7;
+        monday.setDate(monday.getDate() - weekday + 1);
+        title.innerText = `${monday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} — ${addDays(monday, 6).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`;
+        altView.innerHTML = `<div class="week-view">${Array.from({ length: 7 }, (_, index) => {
+            const day = addDays(monday, index);
+            const dateKey = getLocalDateString(day);
+            const appointments = data.appointments.filter(a => a.date === dateKey && a.status !== 'cancelled').sort((a, b) => a.time.localeCompare(b.time));
+            return `<button class="week-day-card ${dateKey === PROTOTYPE_DATE_STR ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')">
+                <span>${day.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}</span>
+                <strong>${day.getDate()}</strong>
+                <small>${appointments.length} horário${appointments.length === 1 ? '' : 's'}</small>
+                <div class="week-appointments">${appointments.slice(0, 3).map(a => {
+                    const client = data.clients.find(c => c.id === a.clientId);
+                    return `<span class="mini-appt ${a.status}">${a.time} · ${client?.name.split(' ')[0] || 'Cliente'}</span>`;
+                }).join('') || '<em>Livre</em>'}</div>
+            </button>`;
+        }).join('')}</div>`;
+    } else {
+        const year = currentSelectedDate.getFullYear();
+        const month = currentSelectedDate.getMonth();
+        const first = new Date(year, month, 1);
+        const days = new Date(year, month + 1, 0).getDate();
+        const leading = first.getDay();
+        title.innerText = first.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        altView.innerHTML = `<div class="month-weekdays">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => `<span>${d}</span>`).join('')}</div>
+            <div class="month-view">${'<span class="month-empty"></span>'.repeat(leading)}${Array.from({ length: days }, (_, index) => {
+                const day = new Date(year, month, index + 1);
+                const dateKey = getLocalDateString(day);
+                const appointments = data.appointments.filter(a => a.date === dateKey && a.status !== 'cancelled');
+                const revenue = appointments.reduce((sum, a) => sum + (data.services.find(s => s.id === a.serviceId)?.price || 0), 0);
+                return `<button class="month-day ${dateKey === PROTOTYPE_DATE_STR ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')"><strong>${index + 1}</strong><span>${appointments.length || ''}</span>${revenue ? `<small>${formatCurrency(revenue).replace(',00','')}</small>` : ''}</button>`;
+            }).join('')}</div>`;
+    }
+}
+
+window.openCalendarDay = function(dateKey) {
+    currentSelectedDate = dateFromLocalString(dateKey);
+    currentAgendaView = 'day';
+    document.querySelectorAll('.agenda-filters button').forEach(button => button.classList.toggle('btn-active', button.id === 'btn-agenda-view-day'));
+    document.querySelector('.calendar-wrapper').style.display = 'flex';
+    document.getElementById('calendar-alternate-view').style.display = 'none';
+    renderAgenda();
+};
+
+function syncAppointmentMessages(appointment) {
+    if (!appointment?.id) return;
+    const relatedJobs = data.messageJobs.filter(job => job.appointmentId === appointment.id);
+    if (appointment.status === 'cancelled' || appointment.status === 'done') {
+        relatedJobs.filter(job => ['pending', 'sent'].includes(job.status)).forEach(job => job.status = 'cancelled');
+        saveData(STATE_KEYS.MESSAGE_JOBS, data.messageJobs);
+        return;
+    }
+    const start = dateFromLocalString(appointment.date);
+    const [hours, minutes] = appointment.time.split(':').map(Number);
+    start.setHours(hours, minutes, 0, 0);
+    const scheduled = new Date(start.getTime() - 24 * 60 * 60 * 1000);
+    const scheduledAt = `${getLocalDateString(scheduled)}T${String(scheduled.getHours()).padStart(2, '0')}:${String(scheduled.getMinutes()).padStart(2, '0')}`;
+    const pendingJob = relatedJobs.find(job => job.status === 'pending');
+    if (pendingJob) {
+        pendingJob.clientId = appointment.clientId;
+        pendingJob.scheduledAt = scheduledAt;
+        pendingJob.text = `Confirme seu horário em ${formatDateStringToBR(appointment.date)} às ${appointment.time}.`;
+    } else if (!relatedJobs.some(job => ['delivered', 'replied'].includes(job.status))) {
+        data.messageJobs.push({ id: `msg-${Date.now()}`, appointmentId: appointment.id, clientId: appointment.clientId, type: 'confirmation', scheduledAt, status: 'pending', text: `Confirme seu horário em ${formatDateStringToBR(appointment.date)} às ${appointment.time}.` });
+    }
+    saveData(STATE_KEYS.MESSAGE_JOBS, data.messageJobs);
+}
+
+function renderAppointmentCommunicationBadge(appointmentId) {
+    const job = data.messageJobs.find(item => item.appointmentId === appointmentId);
+    if (!job) return '<span class="comm-badge neutral"><i class="fa-regular fa-bell"></i></span>';
+    const states = {
+        pending: ['pending', 'fa-clock'], delivered: ['delivered', 'fa-check-double'],
+        replied: ['replied', 'fa-comment-check'], failed: ['failed', 'fa-triangle-exclamation'], sent: ['sent', 'fa-paper-plane']
+    };
+    const [css, icon] = states[job.status] || states.pending;
+    return `<span class="comm-badge ${css}" title="${job.status}"><i class="fa-solid ${icon}"></i></span>`;
+}
+
+function renderAppointmentMessageTimeline(appointmentId) {
+    const container = document.getElementById('appointment-message-timeline');
+    if (!container) return;
+    document.getElementById('btn-send-reminder-now').dataset.appointmentId = appointmentId;
+    const jobs = data.messageJobs.filter(job => job.appointmentId === appointmentId);
+    if (!appointmentId || !jobs.length) {
+        container.className = 'message-timeline-empty';
+        container.innerHTML = appointmentId ? 'Nenhum lembrete programado. Use “Enviar agora”.' : 'Salve o agendamento para programar os lembretes.';
+        return;
+    }
+    container.className = 'message-timeline';
+    container.innerHTML = jobs.map(job => `<div><i class="fa-solid ${job.status === 'failed' ? 'fa-circle-exclamation text-red' : 'fa-circle-check text-green'}"></i><span><strong>${translateMessageStatus(job.status)}</strong><small>${job.text}</small></span></div>`).join('');
+}
+
+function translateMessageStatus(status) {
+    return ({ pending: 'Programada', sent: 'Enviada', delivered: 'Entregue', replied: 'Cliente respondeu', failed: 'Falha no envio', cancelled: 'Cancelada' })[status] || status;
+}
+
+let currentMessageFilter = 'all';
+function renderMessages() {
+    const jobs = data.messageJobs;
+    const pending = jobs.filter(job => job.status === 'pending').length;
+    const delivered = jobs.filter(job => ['delivered', 'replied'].includes(job.status)).length;
+    const attention = jobs.filter(job => job.status === 'failed').length;
+    document.getElementById('badge-messages').innerText = pending + attention;
+    document.getElementById('message-kpis').innerHTML = `
+        <div class="message-kpi glass-effect"><i class="fa-regular fa-clock text-amber"></i><span><strong>${pending}</strong><small>Pendentes</small></span></div>
+        <div class="message-kpi glass-effect"><i class="fa-solid fa-check-double text-green"></i><span><strong>${delivered}</strong><small>Entregues</small></span></div>
+        <div class="message-kpi glass-effect"><i class="fa-solid fa-triangle-exclamation text-red"></i><span><strong>${attention}</strong><small>Atenção</small></span></div>`;
+    document.getElementById('automation-rule-list').innerHTML = data.automationRules.map(rule => `<label class="automation-rule"><span class="rule-icon"><i class="fa-solid ${rule.icon}"></i></span><span><strong>${rule.name}</strong><small>${rule.description}</small></span><input type="checkbox" ${rule.enabled ? 'checked' : ''} onchange="toggleAutomationRule('${rule.id}', this.checked)"><span class="switch-ui"></span></label>`).join('');
+    const filtered = jobs.filter(job => currentMessageFilter === 'all' || (currentMessageFilter === 'attention' ? job.status === 'failed' : job.status === currentMessageFilter));
+    document.getElementById('message-job-list').innerHTML = filtered.map(job => {
+        const client = data.clients.find(c => c.id === job.clientId) || { name: 'Cliente', phone: '' };
+        const appointment = data.appointments.find(a => a.id === job.appointmentId);
+        return `<article class="message-job-card glass-effect status-${job.status}">
+            <div class="message-job-main"><span class="client-avatar">${client.name.charAt(0)}</span><div><strong>${client.name}</strong><small>${appointment ? `${formatDateStringToBR(appointment.date)} · ${appointment.time}` : 'Mensagem avulsa'}</small></div><span class="message-status">${translateMessageStatus(job.status)}</span></div>
+            <p>${job.text}</p>
+            <div class="message-job-actions">${job.status === 'failed' ? `<button class="btn btn-secondary btn-sm" onclick="retryMessage('${job.id}')"><i class="fa-solid fa-rotate"></i> Tentar novamente</button>` : ''}<button class="btn btn-secondary btn-sm" onclick="openEditAppointment('${job.appointmentId}')"><i class="fa-regular fa-calendar"></i> Ver horário</button></div>
+        </article>`;
+    }).join('') || '<div class="empty-state glass-effect"><i class="fa-regular fa-message"></i><p>Nenhuma mensagem neste filtro.</p></div>';
+}
+
+window.toggleAutomationRule = function(id, enabled) {
+    const rule = data.automationRules.find(item => item.id === id);
+    if (rule) rule.enabled = enabled;
+    saveData(STATE_KEYS.AUTOMATION_RULES, data.automationRules);
+    showToast(enabled ? 'Automação ativada.' : 'Automação pausada.', 'success');
+};
+
+window.retryMessage = function(id) {
+    const job = data.messageJobs.find(item => item.id === id);
+    if (job) job.status = 'sent';
+    saveData(STATE_KEYS.MESSAGE_JOBS, data.messageJobs);
+    renderMessages();
+    showToast('Mensagem reenviada na demonstração.', 'success');
+};
+
+function calculateClientStats(clientId) {
+    const appointments = data.appointments.filter(a => a.clientId === clientId && a.status !== 'cancelled').sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
+    const completed = appointments.filter(a => a.status === 'done');
+    const spent = completed.reduce((sum, a) => sum + (data.services.find(s => s.id === a.serviceId)?.price || 0), 0);
+    const intervals = completed.slice(0, -1).map((a, index) => daysBetween(completed[index + 1].date, a.date));
+    const averageFrequency = intervals.length ? Math.round(intervals.reduce((sum, value) => sum + value, 0) / intervals.length) : null;
+    return { appointments, completed, spent, averageFrequency, noShows: appointments.filter(a => a.status === 'no_show').length };
+}
+
+window.openClientDetail = function(clientId) {
+    const client = data.clients.find(c => c.id === clientId);
+    if (!client) return;
+    const stats = calculateClientStats(clientId);
+    document.getElementById('client-detail-title').innerText = client.name;
+    document.getElementById('btn-client-detail-appointment').dataset.clientId = clientId;
+    document.getElementById('client-detail-content').innerHTML = `
+        <div class="client-hero"><span class="client-avatar large">${client.name.charAt(0)}</span><div><strong>${client.phone}</strong><small>${client.instagram ? '@' + client.instagram : 'Sem Instagram'} · retorno em ${stats.averageFrequency || client.frequency} ${(stats.averageFrequency || client.frequency) === 1 ? 'dia' : 'dias'}</small></div><button class="btn btn-success btn-sm" onclick="openWhatsAppCRMSimulator('${client.id}')"><i class="fa-brands fa-whatsapp"></i> Chamar</button></div>
+        <div class="client-stat-grid"><div><strong>${stats.completed.length}</strong><small>Visitas</small></div><div><strong>${formatCurrency(stats.spent)}</strong><small>Total gasto</small></div><div><strong>${stats.noShows}</strong><small>Faltas</small></div></div>
+        <div class="client-notes-card"><span class="eyebrow">Preferências e observações</span><p>${client.notes || 'Nenhuma observação.'}</p></div>
+        <div class="client-history"><div class="panel-header"><h4>Histórico</h4></div>${stats.appointments.slice(0, 6).map(a => { const service = data.services.find(s => s.id === a.serviceId); return `<div class="history-item"><span class="history-dot ${a.status}"></span><div><strong>${service?.name || 'Serviço'}</strong><small>${formatDateStringToBR(a.date)} às ${a.time}</small></div><span class="status-badge">${translateStatus(a.status)}</span></div>`; }).join('') || '<p class="text-muted">Sem atendimentos.</p>'}</div>`;
+    openModal('modal-client-detail');
+};
+
+document.getElementById('message-filter')?.addEventListener('click', event => {
+    const button = event.target.closest('[data-message-filter]');
+    if (!button) return;
+    currentMessageFilter = button.dataset.messageFilter;
+    document.querySelectorAll('[data-message-filter]').forEach(item => item.classList.toggle('active', item === button));
+    renderMessages();
+});
+
+document.getElementById('btn-process-messages')?.addEventListener('click', () => {
+    data.messageJobs.filter(job => job.status === 'pending').forEach(job => job.status = 'sent');
+    saveData(STATE_KEYS.MESSAGE_JOBS, data.messageJobs);
+    renderMessages();
+    showToast('Fila processada. As mensagens foram simuladas.', 'success');
+});
+
+document.getElementById('btn-send-reminder-now')?.addEventListener('click', event => {
+    const appointmentId = event.currentTarget.dataset.appointmentId;
+    const appointment = data.appointments.find(a => a.id === appointmentId);
+    if (!appointment) return showToast('Salve o agendamento primeiro.', 'warning');
+    data.messageJobs.push({ id: `msg-${Date.now()}`, appointmentId, clientId: appointment.clientId, type: 'manual', scheduledAt: `${PROTOTYPE_DATE_STR}T12:00`, status: 'sent', text: `Lembrete manual do horário às ${appointment.time}.` });
+    saveData(STATE_KEYS.MESSAGE_JOBS, data.messageJobs);
+    renderAppointmentMessageTimeline(appointmentId);
+    showToast('Lembrete enviado na demonstração.', 'success');
+});
+
+document.getElementById('btn-client-detail-appointment')?.addEventListener('click', event => {
+    const clientId = event.currentTarget.dataset.clientId;
+    closeModal('modal-client-detail');
+    openNewAppointmentModal();
+    document.getElementById('appt-client-select').value = clientId;
+});
+
 // --- INITIALIZER ON LOAD ---
 window.addEventListener('DOMContentLoaded', () => {
     initMockDatabase();
@@ -2101,6 +2343,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Set document initial render
     renderDashboard();
+    renderMessages();
     
     showToast("Bem-vindo ao protótipo da Barbearia Lexion!", "info");
 });

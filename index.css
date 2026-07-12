@@ -1432,7 +1432,7 @@ body {
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(4px);
-    z-index: 1000;
+    z-index: 1200;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2487,4 +2487,146 @@ body {
         flex-direction: column;
         gap: 12px;
     }
+}
+
+/* ========================================================================== */
+/* MOBILE-FIRST OPERATIONS: MESSAGES, CALENDAR & CLIENT 360                   */
+/* ========================================================================== */
+.eyebrow { display: block; color: var(--primary); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 4px; }
+.mobile-page-intro { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px; margin-bottom: 16px; }
+.mobile-page-intro h3 { margin: 0 0 4px; font-size: 21px; }
+.mobile-page-intro p { margin: 0; color: var(--text-muted); font-size: 13px; }
+.message-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.message-kpi { display: flex; align-items: center; gap: 12px; padding: 16px; }
+.message-kpi > i { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--bg-tertiary); }
+.message-kpi span { display: flex; flex-direction: column; }
+.message-kpi strong { font-size: 20px; }
+.message-kpi small, .automation-rule small, .message-job-main small, .client-hero small, .history-item small { color: var(--text-muted); }
+.automation-rules { padding: 18px; margin-bottom: 16px; }
+.automation-rule-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.automation-rule { position: relative; display: grid; grid-template-columns: 38px 1fr 42px; align-items: center; gap: 10px; padding: 13px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; }
+.automation-rule > span:nth-child(2) { display: flex; flex-direction: column; }
+.rule-icon { display: grid; place-items: center; width: 36px; height: 36px; color: var(--primary); background: var(--primary-light); border-radius: 11px; }
+.automation-rule input { position: absolute; opacity: 0; }
+.switch-ui { width: 40px; height: 23px; border-radius: 20px; background: var(--bg-tertiary); position: relative; transition: .2s; }
+.switch-ui::after { content: ''; position: absolute; width: 17px; height: 17px; left: 3px; top: 3px; border-radius: 50%; background: white; transition: .2s; }
+.automation-rule input:checked + .switch-ui { background: var(--primary); }
+.automation-rule input:checked + .switch-ui::after { transform: translateX(17px); }
+.messages-toolbar { display: flex; justify-content: space-between; margin: 18px 0 12px; }
+.segmented-control { display: inline-flex; padding: 4px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; }
+.segmented-control button { border: 0; background: transparent; color: var(--text-muted); padding: 9px 14px; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.segmented-control button.active { background: var(--primary); color: white; }
+.message-job-list { display: grid; gap: 10px; }
+.message-job-card { padding: 16px; border-left: 3px solid var(--border-color); }
+.message-job-card.status-failed { border-left-color: var(--danger); }
+.message-job-card.status-replied { border-left-color: var(--success); }
+.message-job-main { display: grid; grid-template-columns: 38px 1fr auto; gap: 10px; align-items: center; }
+.message-job-main > div { display: flex; flex-direction: column; }
+.client-avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: white; font-weight: 800; background: linear-gradient(135deg, var(--primary), #4f46e5); }
+.client-avatar.large { width: 52px; height: 52px; border-radius: 16px; font-size: 20px; }
+.message-status { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); background: var(--bg-tertiary); border-radius: 20px; padding: 5px 8px; }
+.message-job-card p { color: var(--text-secondary); font-size: 13px; margin: 12px 0; }
+.message-job-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.empty-state { padding: 40px; text-align: center; color: var(--text-muted); }
+.appointment-communication { margin-top: 18px; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+.communication-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.communication-heading > div { display: flex; flex-direction: column; }
+.message-timeline-empty { color: var(--text-muted); font-size: 12px; margin-top: 12px; }
+.message-timeline { display: grid; gap: 8px; margin-top: 12px; }
+.message-timeline > div { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; }
+.message-timeline span { display: flex; flex-direction: column; }
+.comm-badge { position: absolute; top: 7px; right: 7px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 9px; background: var(--bg-tertiary); }
+.comm-badge.delivered, .comm-badge.replied { color: var(--success); background: rgba(16,185,129,.18); }
+.comm-badge.failed { color: var(--danger); background: rgba(239,68,68,.18); }
+.comm-badge.pending, .comm-badge.sent { color: var(--warning); background: rgba(245,158,11,.18); }
+.week-view { display: grid; grid-template-columns: repeat(7, minmax(135px, 1fr)); gap: 8px; padding: 12px; overflow-x: auto; }
+.week-day-card, .month-day { color: var(--text-primary); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: left; cursor: pointer; }
+.week-day-card { min-height: 180px; padding: 14px; display: flex; flex-direction: column; gap: 5px; }
+.week-day-card > span { color: var(--text-muted); text-transform: uppercase; font-size: 10px; font-weight: 800; }
+.week-day-card > strong { font-size: 24px; }
+.week-day-card > small { color: var(--primary); }
+.week-day-card.is-today, .month-day.is-today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.week-appointments { display: grid; gap: 5px; margin-top: 8px; }
+.mini-appt { padding: 5px 6px; background: var(--primary-light); color: #c4b5fd; border-radius: 6px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.week-appointments em { color: var(--text-muted); font-size: 11px; }
+.month-weekdays, .month-view { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.month-weekdays { padding: 14px 14px 0; color: var(--text-muted); text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.month-view { padding: 10px 14px 14px; }
+.month-day { position: relative; min-height: 82px; padding: 10px; }
+.month-day > span { position: absolute; right: 8px; top: 8px; min-width: 20px; height: 20px; display: grid; place-items: center; border-radius: 10px; color: white; background: var(--primary); font-size: 10px; }
+.month-day small { display: block; margin-top: 20px; color: var(--success); font-size: 9px; }
+.modal-dialog-wide { max-width: 680px; }
+.client-hero { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; }
+.client-hero > div { display: flex; flex-direction: column; }
+.client-stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 18px 0; }
+.client-stat-grid > div { padding: 13px; background: var(--bg-secondary); border-radius: 12px; display: flex; flex-direction: column; }
+.client-stat-grid small { color: var(--text-muted); font-size: 10px; text-transform: uppercase; }
+.client-notes-card { padding: 14px; border: 1px solid var(--border-color); border-radius: 12px; }
+.client-notes-card p { margin: 6px 0 0; color: var(--text-secondary); font-size: 13px; }
+.client-history { margin-top: 18px; }
+.history-item { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border-color); }
+.history-item > div { display: flex; flex-direction: column; }
+.history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--info); }
+.history-dot.done { background: var(--success); }
+.history-dot.no_show { background: var(--danger); }
+
+@media (max-width: 768px) {
+    body { overflow-x: hidden; }
+    .top-header { position: sticky; top: 0; z-index: 90; min-height: 58px; background: rgba(15, 20, 30, .92); backdrop-filter: blur(14px); }
+    .header-title { font-size: 19px; }
+    .pages-container { padding: 12px; }
+    .dashboard-layout { gap: 12px; }
+    .dashboard-panel { border-radius: 16px; }
+    .agenda-controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .agenda-filters { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+    .agenda-filters .btn { justify-content: center; min-height: 42px; }
+    .agenda-navigation { display: grid; grid-template-columns: 42px 1fr 42px; width: 100%; }
+    .agenda-current-date-title { text-align: center; font-size: 12px; }
+    .agenda-actions .btn { width: 100%; min-height: 46px; justify-content: center; }
+    .calendar-wrapper { border-radius: 16px; }
+    .calendar-body-scroll { max-height: calc(100vh - 330px); min-height: 410px; }
+    .calendar-appt-event { left: 4px; right: 4px; min-height: 38px; padding: 6px 32px 6px 8px; border-radius: 8px; }
+    .week-view { grid-template-columns: repeat(7, 78vw); scroll-snap-type: x mandatory; padding: 10px; }
+    .week-day-card { scroll-snap-align: center; min-height: 230px; }
+    .month-weekdays { gap: 2px; padding-left: 6px; padding-right: 6px; }
+    .month-view { gap: 3px; padding: 8px 6px; }
+    .month-day { min-height: 58px; padding: 7px; border-radius: 9px; }
+    .month-day small { display: none; }
+    .month-day > span { right: 4px; top: 4px; min-width: 17px; height: 17px; font-size: 9px; }
+    .mobile-page-intro { align-items: stretch; flex-direction: column; padding: 16px; }
+    .mobile-page-intro .btn { width: 100%; justify-content: center; min-height: 44px; }
+    .message-kpis { gap: 7px; }
+    .message-kpi { padding: 11px 8px; gap: 7px; flex-direction: column; align-items: flex-start; }
+    .message-kpi > i { width: 32px; height: 32px; }
+    .message-kpi strong { font-size: 18px; }
+    .message-kpi small { font-size: 9px; }
+    .automation-rules { padding: 14px; }
+    .automation-rule-list { grid-template-columns: 1fr; }
+    .automation-rule { min-height: 62px; }
+    .segmented-control { width: 100%; }
+    .segmented-control button { flex: 1; padding: 10px 6px; }
+    .message-job-card { padding: 14px; }
+    .message-job-main { grid-template-columns: 38px 1fr; }
+    .message-status { grid-column: 2; justify-self: start; }
+    .message-job-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .message-job-actions .btn { justify-content: center; }
+    .modal-backdrop { align-items: flex-end; padding: 0; }
+    .modal-dialog { width: 100%; max-height: 92vh; margin: 0; border-radius: 22px 22px 0 0; }
+    .modal-body { max-height: calc(92vh - 132px); overflow-y: auto; padding: 16px; }
+    .modal-header { padding: 16px; }
+    .modal-footer { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+    .sticky-mobile-actions { position: sticky; bottom: 0; background: var(--bg-secondary); }
+    .client-hero { grid-template-columns: 52px 1fr; }
+    .client-hero .btn { grid-column: 1 / -1; justify-content: center; }
+    .client-stat-grid > div { padding: 10px; }
+    .client-stat-grid strong { font-size: 13px; }
+    .history-item .status-badge { font-size: 9px; }
+    .communication-heading { align-items: stretch; flex-direction: column; }
+    .communication-heading .btn { justify-content: center; }
+    .table-container { border: 0; background: transparent; overflow: visible; }
+    .data-table tr { padding: 14px; border-radius: 16px; }
+    .data-table td:last-child > div { display: grid !important; grid-template-columns: 1fr 1fr auto; width: 100%; }
+    .data-table td:last-child .btn { justify-content: center; min-height: 38px; }
+    .mobile-tab-bar { height: 72px; }
+    .tab-item { min-height: 48px; justify-content: center; }
 }
