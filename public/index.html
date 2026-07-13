@@ -11,8 +11,8 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS Customizado -->
-    <link rel="stylesheet" href="/index.css?v=4">
-    <link rel="stylesheet" href="/auth.css?v=4">
+    <link rel="stylesheet" href="/index.css?v=5">
+    <link rel="stylesheet" href="/auth.css?v=5">
 </head>
 <body class="dark-theme">
     <!-- TELA DE LOGIN -->
@@ -70,8 +70,8 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <div class="logo-icon">L</div>
-                    <span>Lexion<span class="logo-dot">.</span></span>
+                    <div class="logo-icon" id="sidebar-logo-icon">L</div>
+                    <span id="sidebar-salon-name">Lexion<span class="logo-dot">.</span></span>
                 </div>
                 <button class="sidebar-close" id="sidebar-close-btn">
                     <i class="fa-solid fa-xmark"></i>
@@ -120,10 +120,9 @@
             <div class="sidebar-footer">
                 <div class="user-profile" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Profile Photo" class="profile-avatar">
                         <div class="profile-info">
-                            <span class="profile-name" id="user-profile-name">Carlos Lexion</span>
-                            <span class="profile-role" id="user-profile-role">Administrador</span>
+                            <span class="profile-name">Lexion Salão</span>
+                            <span class="profile-role">Desenvolvido por Lexion Consultoria</span>
                         </div>
                     </div>
                     <button id="btn-logout-sidebar" title="Sair do Sistema" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; padding: 5px;">
@@ -1156,9 +1155,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Camada de Dados -->
-    <script src="/api.js?v=4"></script>
+    <script src="/api.js?v=5"></script>
 
     <!-- JavaScript Principal -->
-    <script src="/app.js?v=4"></script>
+    <script src="/app.js?v=5"></script>
 </body>
 </html>

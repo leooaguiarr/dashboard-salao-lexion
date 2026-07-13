@@ -2669,3 +2669,12 @@ body.public-booking-mode .mobile-tab-bar {
     color: var(--primary, #8b5cf6);
 }
 
+
+/* Nome do salão no topo da sidebar (nomes longos não estouram a largura) */
+#sidebar-salon-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;
+    display: inline-block;
+}

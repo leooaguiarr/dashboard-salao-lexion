@@ -2504,25 +2504,29 @@ document.getElementById('btn-client-detail-appointment')?.addEventListener('clic
     document.getElementById('appt-client-select').value = clientId;
 });
 
+// Topo da sidebar mostra o nome (e a logomarca) do salão configurado;
+// o rodapé mantém a marca fixa "Lexion Salão / Desenvolvido por Lexion Consultoria"
 function updateUserProfileUI() {
-    const nameEl = document.getElementById('user-profile-name');
-    const roleEl = document.getElementById('user-profile-role');
-    const avatarImg = document.querySelector('.profile-avatar');
+    const salonNameEl = document.getElementById('sidebar-salon-name');
+    const logoIconEl = document.getElementById('sidebar-logo-icon');
 
-    const savedBizName = localStorage.getItem('lexion_biz_name') || '';
+    const salonName = (data.businessInfo && data.businessInfo.name) || localStorage.getItem('lexion_biz_name') || '';
     const savedAvatar = localStorage.getItem('lexion_biz_avatar') || '';
 
-    if (avatarImg && savedAvatar) {
-        avatarImg.src = savedAvatar;
+    if (salonNameEl) {
+        if (salonName) {
+            salonNameEl.innerText = salonName;
+        } else {
+            salonNameEl.innerHTML = 'Lexion<span class="logo-dot">.</span>';
+        }
     }
 
-    if (DataService.isAuthenticated()) {
-        const email = DataService.getUserEmail();
-        if (nameEl) nameEl.innerText = email || 'Administrador';
-        if (roleEl) roleEl.innerText = savedBizName || 'Salão Conectado';
-    } else {
-        if (nameEl) nameEl.innerText = 'Carlos Lexion';
-        if (roleEl) roleEl.innerText = savedBizName || 'Demonstração (Local)';
+    if (logoIconEl) {
+        if (savedAvatar) {
+            logoIconEl.innerHTML = `<img src="${savedAvatar}" alt="Logomarca" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">`;
+        } else {
+            logoIconEl.innerText = (salonName || 'L').charAt(0).toUpperCase();
+        }
     }
 }
 
@@ -2603,6 +2607,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     initMockDatabase();
     await loadData();
+    updateUserProfileUI(); // reflete o nome do salão vindo da nuvem
     initNavigation();
     initModals();
 
@@ -2638,6 +2643,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 
                 // Recarregar dados da nuvem
                 await loadData();
+                updateUserProfileUI(); // nome do salão vindo da nuvem
                 renderDashboard();
                 renderMessages();
 
@@ -2671,6 +2677,7 @@ document.getElementById('btn-logout-sidebar')?.addEventListener('click', async (
             
             // Limpa o estado global e recarrega no modo local
             await loadData();
+            updateUserProfileUI();
             renderDashboard();
             renderMessages();
         } catch (err) {
