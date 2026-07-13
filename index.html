@@ -11,10 +11,61 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS Customizado -->
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css?v=3">
+    <link rel="stylesheet" href="auth.css?v=1">
 </head>
 <body class="dark-theme">
-    <div class="app-container">
+    <!-- TELA DE LOGIN -->
+    <div id="auth-overlay" class="auth-overlay" style="display: none;">
+        <div class="auth-split-layout">
+            <!-- Left Side (Cover Image) -->
+            <div class="auth-cover">
+                <div class="auth-cover-logo">
+                    <div class="logo-icon">L</div>
+                    <span>Lexion<span style="color:#8b5cf6">.</span></span>
+                </div>
+                <div class="auth-cover-content">
+                    <h1>SEU ESTILO,<br><span>NOSSA ARTE.</span></h1>
+                    <p>Gerencie seu salão com elegância e precisão.</p>
+                </div>
+            </div>
+            
+            <!-- Right Side (Form) -->
+            <div class="auth-form-side">
+                <div class="auth-form-container">
+                    <h2 class="auth-title">Entrar</h2>
+                    <p class="auth-subtitle">Acesse com seu e-mail e senha</p>
+                    
+                    <form id="form-login" class="auth-form">
+                        <div class="form-group">
+                            <label for="auth-email">E-mail</label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="auth-email" class="form-control auth-input" placeholder="seu@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-password">Senha</label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="auth-password" class="form-control auth-input" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn auth-submit-btn" id="btn-login-submit">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar no Sistema
+                        </button>
+                    </form>
+                    
+                    <div id="auth-error" class="auth-error" style="display: none;">
+                        <i class="fa-solid fa-circle-exclamation"></i> <span>Email ou senha incorretos.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container">
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -67,12 +118,17 @@
             </nav>
             
             <div class="sidebar-footer">
-                <div class="user-profile">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Profile Photo" class="profile-avatar">
-                    <div class="profile-info">
-                        <span class="profile-name">Carlos Lexion</span>
-                        <span class="profile-role">Administrador</span>
+                <div class="user-profile" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Profile Photo" class="profile-avatar">
+                        <div class="profile-info">
+                            <span class="profile-name" id="user-profile-name">Carlos Lexion</span>
+                            <span class="profile-role" id="user-profile-role">Administrador</span>
+                        </div>
                     </div>
+                    <button id="btn-logout-sidebar" title="Sair do Sistema" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; padding: 5px;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -562,6 +618,10 @@
                                 <p class="panel-description">Esses dados serão exibidos na página pública de agendamento.</p>
                             </div>
                             <form class="config-form" id="form-business-info">
+                                <div class="form-group">
+                                    <label for="biz-avatar">Foto do Perfil / Logomarca</label>
+                                    <input type="file" id="biz-avatar" class="form-control" accept="image/*">
+                                </div>
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="biz-name">Nome do Salão/Barbearia</label>
@@ -1092,7 +1152,13 @@
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Camada de Dados -->
+    <script src="api.js?v=3"></script>
+
     <!-- JavaScript Principal -->
-    <script src="app.js"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>

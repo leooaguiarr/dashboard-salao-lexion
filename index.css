@@ -249,17 +249,25 @@ body {
 .profile-info {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    flex: 1;
 }
 
 .profile-name {
     font-weight: 600;
     font-size: 14px;
     color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .profile-role {
     font-size: 12px;
     color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Main Content Area */
@@ -2293,18 +2301,6 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
-        height: 68px;
-        background-color: rgba(19, 26, 38, 0.95);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-top: 1px solid var(--border-color);
-        justify-content: space-around;
-        align-items: center;
-        z-index: 1000;
-        padding-bottom: env(safe-area-inset-bottom);
-        box-shadow: 0 -8px 20px rgba(0,0,0,0.3);
-    }
-    
     .tab-item {
         display: flex;
         flex-direction: column;
@@ -2630,3 +2626,4 @@ body {
     .mobile-tab-bar { height: 72px; }
     .tab-item { min-height: 48px; justify-content: center; }
 }
+

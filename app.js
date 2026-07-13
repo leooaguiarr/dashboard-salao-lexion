@@ -169,21 +169,23 @@ let data = {
     messageJobs: []
 };
 
-function loadData() {
-    data.services = JSON.parse(localStorage.getItem(STATE_KEYS.SERVICES)) || [];
-    data.professionals = JSON.parse(localStorage.getItem(STATE_KEYS.PROFESSIONALS)) || [];
-    data.clients = JSON.parse(localStorage.getItem(STATE_KEYS.CLIENTS)) || [];
-    data.appointments = JSON.parse(localStorage.getItem(STATE_KEYS.APPOINTMENTS)) || [];
-    data.leads = JSON.parse(localStorage.getItem(STATE_KEYS.LEADS)) || [];
-    data.transactions = JSON.parse(localStorage.getItem(STATE_KEYS.TRANSACTIONS)) || [];
-    data.businessInfo = JSON.parse(localStorage.getItem(STATE_KEYS.BUSINESS_INFO)) || {};
-    data.automationRules = JSON.parse(localStorage.getItem(STATE_KEYS.AUTOMATION_RULES)) || [];
-    data.messageJobs = JSON.parse(localStorage.getItem(STATE_KEYS.MESSAGE_JOBS)) || [];
+async function loadData() {
+    const loaded = await DataService.loadAll(STATE_KEYS);
+    data.services = loaded.services;
+    data.professionals = loaded.professionals;
+    data.clients = loaded.clients;
+    data.appointments = loaded.appointments;
+    data.leads = loaded.leads;
+    data.transactions = loaded.transactions;
+    data.businessInfo = loaded.businessInfo;
+    data.automationRules = loaded.automationRules;
+    data.messageJobs = loaded.messageJobs;
 }
 
 function saveData(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-    loadData();
+    DataService.save(key, value).catch(console.error);
+    // Como a variável global 'data' já foi modificada antes de chamar saveData,
+    // não precisamos bloquear a UI para redesenhar.
 }
 
 // --- UTILITY FUNCTIONS ---
@@ -1687,6 +1689,46 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     document.getElementById('biz-link-url').innerText = `https://lexion.com.br/agendar/${slug}`;
 });
 
+// Cloud Migration
+document.getElementById('btn-migrate-supabase')?.addEventListener('click', async () => {
+    const url = document.getElementById('supabase-url').value;
+    const key = document.getElementById('supabase-anon-key').value;
+    
+    if (!url || !key) {
+        showToast("Preencha a URL e a Anon Key do Supabase.", "warning");
+        return;
+    }
+    
+    // Solicitar email e senha do admin para a migração inicial
+    const email = prompt("E-mail do Administrador (Supabase Auth):");
+    const password = prompt("Senha do Administrador:");
+    if (!email || !password) {
+        showToast("É necessário e-mail e senha para autenticar a migração.", "warning");
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('btn-migrate-supabase');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Conectando...';
+
+        // Conecta e Loga no Supabase
+        await DataService.connectAndLogin(url, key, email, password);
+
+        // Se logou, iniciar a migração
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Migrando Dados...';
+        await DataService.migrateToCloud(data);
+
+        showToast("Migração concluída com sucesso! Sistema agora está na Nuvem.", "success");
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Migrado para a Nuvem';
+
+    } catch (err) {
+        console.error("Erro na migração:", err);
+        showToast("Erro na migração: " + err.message, "danger");
+        document.getElementById('btn-migrate-supabase').disabled = false;
+        document.getElementById('btn-migrate-supabase').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Iniciar Migração para a Nuvem';
+    }
+});
 // Services CRUD
 document.getElementById('btn-add-service').addEventListener('click', () => {
     document.getElementById('service-id').value = '';
@@ -2331,10 +2373,98 @@ document.getElementById('btn-client-detail-appointment')?.addEventListener('clic
     document.getElementById('appt-client-select').value = clientId;
 });
 
+function updateUserProfileUI() {
+    const nameEl = document.getElementById('user-profile-name');
+    const roleEl = document.getElementById('user-profile-role');
+    const avatarImg = document.querySelector('.profile-avatar');
+
+    const savedBizName = localStorage.getItem('lexion_biz_name') || '';
+    const savedAvatar = localStorage.getItem('lexion_biz_avatar') || '';
+
+    if (avatarImg && savedAvatar) {
+        avatarImg.src = savedAvatar;
+    }
+
+    if (DataService.isAuthenticated()) {
+        const email = DataService.getUserEmail();
+        if (nameEl) nameEl.innerText = email || 'Administrador';
+        if (roleEl) roleEl.innerText = savedBizName || 'Salão Conectado';
+    } else {
+        if (nameEl) nameEl.innerText = 'Carlos Lexion';
+        if (roleEl) roleEl.innerText = savedBizName || 'Demonstração (Local)';
+    }
+}
+
+function updateDatabaseTabUI() {
+    const statusDot = document.getElementById('db-status-dot');
+    const statusText = document.getElementById('db-status-text');
+    const loggedUser = document.getElementById('db-logged-user');
+    const migrationAlert = document.getElementById('db-migration-alert');
+    const btnMigrate = document.getElementById('btn-migrate-supabase-direct');
+    const btnLogout = document.getElementById('btn-logout-sidebar');
+
+    if (DataService.isSupabaseConfigured()) {
+        if (DataService.isAuthenticated()) {
+            if (statusDot) statusDot.style.backgroundColor = 'var(--success)';
+            if (statusText) statusText.innerText = 'Status: Conectado ao Supabase (Nuvem)';
+            if (loggedUser) loggedUser.innerText = DataService.getUserEmail() || 'Conectado';
+            if (btnLogout) btnLogout.style.display = 'block';
+
+            // Verifica se há dados locais no localStorage para migrar
+            const hasLocalData = ['lexion_clients', 'lexion_appointments', 'lexion_services']
+                .some(key => {
+                    try {
+                        const localData = JSON.parse(localStorage.getItem(key));
+                        return Array.isArray(localData) && localData.length > 0;
+                    } catch(e) { return false; }
+                });
+
+            if (hasLocalData) {
+                if (migrationAlert) migrationAlert.style.display = 'flex';
+                if (btnMigrate) btnMigrate.style.display = 'block';
+            } else {
+                if (migrationAlert) migrationAlert.style.display = 'none';
+                if (btnMigrate) btnMigrate.style.display = 'none';
+            }
+        } else {
+            if (statusDot) statusDot.style.backgroundColor = 'var(--warning)';
+            if (statusText) statusText.innerText = 'Status: Não Autenticado';
+            if (loggedUser) loggedUser.innerText = 'Nenhum';
+            if (migrationAlert) migrationAlert.style.display = 'none';
+            if (btnMigrate) btnMigrate.style.display = 'none';
+            if (btnLogout) btnLogout.style.display = 'none';
+        }
+    } else {
+        if (statusDot) statusDot.style.backgroundColor = 'var(--warning)';
+        if (statusText) statusText.innerText = 'Status: Modo de Demonstração (Local)';
+        if (loggedUser) loggedUser.innerText = 'Nenhum (Local)';
+        if (migrationAlert) migrationAlert.style.display = 'none';
+        if (btnMigrate) btnMigrate.style.display = 'none';
+        if (btnLogout) btnLogout.style.display = 'none';
+    }
+}
+
 // --- INITIALIZER ON LOAD ---
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+    // 1. Inicializa Conexão Supabase (credenciais fixas no api.js)
+    await DataService.init();
+
+    // 2. Se o Supabase está configurado mas não logado, mostra tela de login
+    const authOverlay = document.getElementById('auth-overlay');
+    const appContainer = document.getElementById('app-container');
+    if (DataService.isSupabaseConfigured() && !DataService.isAuthenticated()) {
+        if (authOverlay) authOverlay.style.display = 'flex';
+        if (appContainer) appContainer.style.display = 'none';
+    } else {
+        if (authOverlay) authOverlay.style.display = 'none';
+        if (appContainer) appContainer.style.display = 'flex';
+    }
+
+    updateUserProfileUI();
+    updateDatabaseTabUI();
+
     initMockDatabase();
-    loadData();
+    await loadData();
     initNavigation();
     initModals();
     
@@ -2344,6 +2474,139 @@ window.addEventListener('DOMContentLoaded', () => {
     // Set document initial render
     renderDashboard();
     renderMessages();
+
+    // Login Form Submit (dentro do DOMContentLoaded para garantir que o form exista)
+    const formLogin = document.getElementById('form-login');
+    if (formLogin) {
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const btn = document.getElementById('btn-login-submit');
+            const errBox = document.getElementById('auth-error');
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Entrando...';
+                errBox.style.display = 'none';
+
+                await DataService.login(email, password);
+
+                // Se sucesso
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                updateUserProfileUI();
+                updateDatabaseTabUI();
+                
+                // Recarregar dados da nuvem
+                await loadData();
+                renderDashboard();
+                renderMessages();
+
+            } catch (err) {
+                errBox.style.display = 'flex';
+                errBox.querySelector('span').textContent = err.message || "Email ou senha incorretos.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar no Sistema';
+            }
+        });
+    }
+});
+
+
+
+// Logout Button handler
+document.getElementById('btn-logout-sidebar')?.addEventListener('click', async () => {
+    if (confirm("Deseja realmente sair do sistema e desconectar do banco de dados na nuvem?")) {
+        try {
+            await DataService.logout();
+            showToast("Sessão encerrada com sucesso.", "success");
+            // Força o overlay de login voltar a aparecer
+            const authOverlay = document.getElementById('auth-overlay');
+            if (authOverlay) authOverlay.style.display = 'flex';
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.style.display = 'none';
+            
+            updateUserProfileUI();
+            updateDatabaseTabUI();
+            
+            // Limpa o estado global e recarrega no modo local
+            await loadData();
+            renderDashboard();
+            renderMessages();
+        } catch (err) {
+            showToast("Erro ao deslogar: " + err.message, "danger");
+        }
+    }
+});
+
+// Sincronizar dados locais direto para a nuvem
+document.getElementById('btn-migrate-supabase-direct')?.addEventListener('click', async () => {
+    if (confirm("Isso enviará os dados salvos localmente neste navegador para o seu banco na nuvem. Continuar?")) {
+        const btn = document.getElementById('btn-migrate-supabase-direct');
+        const originalText = btn.innerHTML;
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
+            
+            // Carrega dados locais do localStorage (já que loadAll no modo autenticado traz da nuvem)
+            const getLocal = (key) => JSON.parse(localStorage.getItem(key)) || [];
+            const localData = {
+                services: getLocal(STATE_KEYS.SERVICES),
+                professionals: getLocal(STATE_KEYS.PROFESSIONALS),
+                clients: getLocal(STATE_KEYS.CLIENTS),
+                appointments: getLocal(STATE_KEYS.APPOINTMENTS),
+                leads: getLocal(STATE_KEYS.LEADS),
+                transactions: getLocal(STATE_KEYS.TRANSACTIONS),
+                businessInfo: JSON.parse(localStorage.getItem(STATE_KEYS.BUSINESS_INFO)) || {}
+            };
+
+            await DataService.migrateToCloud(localData);
+            
+            // Limpa o localStorage local para não ficar mostrando o aviso de migração redundante
+            ['lexion_clients', 'lexion_appointments', 'lexion_services', 'lexion_professionals', 'lexion_leads', 'lexion_transactions']
+                .forEach(key => localStorage.removeItem(key));
+            
+            showToast("Sincronização dos dados locais concluída!", "success");
+            updateDatabaseTabUI();
+            
+            // Recarrega tudo
+            await loadData();
+            renderDashboard();
+            renderMessages();
+        } catch (err) {
+            showToast("Erro ao sincronizar: " + err.message, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+});
+
+// Configurações do Salão (Nome e Foto do Perfil)
+document.getElementById('form-business-info')?.addEventListener('submit', (e) => {
+    e.preventDefault();
     
-    showToast("Bem-vindo ao protótipo da Barbearia Lexion!", "info");
+    const bizName = document.getElementById('biz-name').value;
+    const bizAvatarFile = document.getElementById('biz-avatar').files[0];
+    
+    // Salva o nome imediatamente
+    if (bizName) {
+        localStorage.setItem('lexion_biz_name', bizName);
+    }
+    
+    // Processa a imagem se existir
+    if (bizAvatarFile) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            localStorage.setItem('lexion_biz_avatar', event.target.result);
+            updateUserProfileUI();
+            showToast("Configurações atualizadas com sucesso!", "success");
+        };
+        reader.readAsDataURL(bizAvatarFile);
+    } else {
+        updateUserProfileUI();
+        showToast("Configurações atualizadas com sucesso!", "success");
+    }
 });

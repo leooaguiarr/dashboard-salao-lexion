@@ -1,0 +1,264 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ===== AUTH OVERLAY (tela inteira) ===== */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #07041a;
+    z-index: 99999;
+    display: flex;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.auth-overlay * {
+    box-sizing: border-box;
+}
+
+/* ===== SPLIT LAYOUT ===== */
+.auth-split-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== LADO ESQUERDO (imagem de barbearia) ===== */
+.auth-cover {
+    flex: 1;
+    background-image: url('assets/login-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 50px;
+    overflow: hidden;
+    /* Transição suave com o lado direito */
+    border-right: none;
+}
+
+/* Overlay escuro gradual sobre a imagem, com leve tom roxo para integrar */
+.auth-cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        linear-gradient(to right, transparent 60%, #07041a 100%),
+        linear-gradient(to top, rgba(7, 4, 26, 0.85) 0%, rgba(7, 4, 26, 0.2) 40%, rgba(7, 4, 26, 0.1) 70%);
+    z-index: 1;
+}
+
+/* Logo no topo esquerdo da imagem */
+.auth-cover-logo {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.auth-cover-logo .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    color: white;
+}
+
+/* Texto sobre a imagem (embaixo) */
+.auth-cover-content {
+    position: relative;
+    z-index: 2;
+}
+
+.auth-cover-content h1 {
+    font-size: 44px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.15;
+    text-transform: uppercase;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+}
+
+.auth-cover-content h1 span {
+    color: #a78bfa;
+}
+
+.auth-cover-content p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* ===== LADO DIREITO (formulário) ===== */
+.auth-form-side {
+    flex: 0 0 480px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #07041a;
+    padding: 40px 50px;
+}
+
+.auth-form-container {
+    width: 100%;
+    max-width: 380px;
+}
+
+.auth-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+}
+
+.auth-subtitle {
+    font-size: 15px;
+    color: #8a82b0;
+    margin: 0 0 36px 0;
+    font-weight: 400;
+}
+
+/* ===== FORMULÁRIO ===== */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.auth-form .form-group {
+    margin: 0;
+    padding: 0;
+}
+
+.auth-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #b0a8d6;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Inputs */
+.auth-input {
+    background-color: rgba(18, 12, 41, 0.8) !important;
+    border: 1px solid #2a1f5e !important;
+    color: #ffffff !important;
+    height: 52px !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    padding: 0 20px 0 48px !important;
+    width: 100% !important;
+    outline: none !important;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.auth-input::placeholder {
+    color: #4a4272;
+}
+
+.auth-input:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15) !important;
+}
+
+.input-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-icon-wrapper i {
+    position: absolute;
+    left: 18px;
+    color: #6d5eac;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ===== BOTÃO ENTRAR ===== */
+.auth-submit-btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    color: white !important;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.auth-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.45);
+}
+
+/* ===== ERRO ===== */
+.auth-error {
+    margin-top: 20px;
+    background-color: rgba(244, 63, 94, 0.08);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    color: #f43f5e;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 992px) {
+    .auth-split-layout {
+        flex-direction: column;
+    }
+    .auth-cover {
+        flex: 0 0 280px;
+        padding: 30px;
+    }
+    .auth-cover::before {
+        background:
+            linear-gradient(to bottom, transparent 30%, #07041a 100%),
+            linear-gradient(to top, rgba(7, 4, 26, 0.85) 0%, rgba(7, 4, 26, 0.2) 50%);
+    }
+    .auth-cover-content h1 {
+        font-size: 32px;
+    }
+    .auth-form-side {
+        flex: 1;
+        padding: 30px 24px;
+        align-items: flex-start;
+    }
+    .auth-title {
+        font-size: 28px;
+    }
+}
