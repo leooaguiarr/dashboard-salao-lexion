@@ -2235,9 +2235,8 @@ body {
 }
 
 @media (max-width: 768px) {
-    /* Main Layout Adjustment for Bottom Tab Bar */
     .main-content {
-        padding-bottom: 84px; /* Room for Bottom Tab Bar */
+        padding-bottom: 24px;
     }
     
     .sidebar {
