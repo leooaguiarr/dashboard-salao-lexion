@@ -71,15 +71,7 @@ const DataService = {
     async loadAll(keys) {
         if (supabaseClient && this.isAuthenticated()) {
             // Busca dados da Nuvem (RLS filtra automaticamente pelo user_id)
-            const [
-                { data: services },
-                { data: professionals },
-                { data: clients },
-                { data: appointments },
-                { data: leads },
-                { data: transactions },
-                { data: businessInfoArr }
-            ] = await Promise.all([
+            const results = await Promise.all([
                 supabaseClient.from('services').select('*'),
                 supabaseClient.from('professionals').select('*'),
                 supabaseClient.from('clients').select('*'),
@@ -88,6 +80,17 @@ const DataService = {
                 supabaseClient.from('transactions').select('*'),
                 supabaseClient.from('business_info').select('*').limit(1)
             ]);
+
+            // Erros do Supabase não são exceções: vêm no campo .error de
+            // cada resposta. Sem esta checagem, falhas passam em silêncio.
+            const failed = results.find(r => r.error);
+            if (failed) {
+                console.error("Erro ao carregar dados da nuvem:", failed.error);
+                window.showToast?.("Erro ao carregar dados da nuvem: " + failed.error.message, "danger");
+            }
+
+            const [services, professionals, clients, appointments, leads, transactions, businessInfoArr] =
+                results.map(r => r.data);
 
             return {
                 services: services || [],
@@ -133,20 +136,24 @@ const DataService = {
                 const tableName = keyToTable[key];
                 if (tableName) {
                     const userId = this.getUserId();
+                    let error = null;
                     if (tableName === 'business_info' && typeof value === 'object' && !Array.isArray(value)) {
                         const biz = { ...value, user_id: userId };
                         if (!biz.id) biz.id = undefined; // let DB generate UUID
-                        await supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' });
+                        ({ error } = await supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' }));
                     } else if (Array.isArray(value)) {
                         // Injeta user_id em cada item antes de upsert
                         const withUserId = value.map(item => ({ ...item, user_id: userId }));
                         if (withUserId.length > 0) {
-                            await supabaseClient.from(tableName).upsert(withUserId);
+                            ({ error } = await supabaseClient.from(tableName).upsert(withUserId));
                         }
                     }
+                    // Erros do Supabase vêm no retorno, não como exceção
+                    if (error) throw error;
                 }
             } catch (err) {
                 console.error("Erro salvando no Supabase:", err);
+                window.showToast?.("Erro ao salvar na nuvem: " + (err.message || err), "danger");
             }
         }
 
@@ -160,18 +167,24 @@ const DataService = {
         const userId = this.getUserId();
 
         const addUserId = (arr) => arr.map(item => ({ ...item, user_id: userId }));
+        // Erros do Supabase vêm no retorno, não como exceção — converte
+        // em exceção para o botão de migração exibir a falha
+        const run = async (promise, table) => {
+            const { error } = await promise;
+            if (error) throw new Error(`${table}: ${error.message}`);
+        };
 
         if (localData.businessInfo && localData.businessInfo.name) {
             const biz = { ...localData.businessInfo, user_id: userId };
             if (!biz.id) biz.id = undefined;
-            await supabaseClient.from('business_info').upsert(biz);
+            await run(supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' }), 'business_info');
         }
-        if (localData.services.length) await supabaseClient.from('services').upsert(addUserId(localData.services));
-        if (localData.professionals.length) await supabaseClient.from('professionals').upsert(addUserId(localData.professionals));
-        if (localData.clients.length) await supabaseClient.from('clients').upsert(addUserId(localData.clients));
-        if (localData.appointments.length) await supabaseClient.from('appointments').upsert(addUserId(localData.appointments));
-        if (localData.leads.length) await supabaseClient.from('leads').upsert(addUserId(localData.leads));
-        if (localData.transactions.length) await supabaseClient.from('transactions').upsert(addUserId(localData.transactions));
+        if (localData.services.length) await run(supabaseClient.from('services').upsert(addUserId(localData.services)), 'services');
+        if (localData.professionals.length) await run(supabaseClient.from('professionals').upsert(addUserId(localData.professionals)), 'professionals');
+        if (localData.clients.length) await run(supabaseClient.from('clients').upsert(addUserId(localData.clients)), 'clients');
+        if (localData.appointments.length) await run(supabaseClient.from('appointments').upsert(addUserId(localData.appointments)), 'appointments');
+        if (localData.leads.length) await run(supabaseClient.from('leads').upsert(addUserId(localData.leads)), 'leads');
+        if (localData.transactions.length) await run(supabaseClient.from('transactions').upsert(addUserId(localData.transactions)), 'transactions');
     },
 
     // -------------------------

@@ -17,9 +17,10 @@ const STATE_KEYS = {
     MESSAGE_JOBS: 'lexion_message_jobs'
 };
 
-// Target Date for our Prototype: July 8, 2026
+// Data usada apenas pelos dados de demonstração (modo local/demo)
 const PROTOTYPE_DATE_STR = '2026-07-08';
-let currentSelectedDate = new Date(2026, 6, 8); // 8 de Julho de 2026
+// Em produção a agenda abre no dia atual
+let currentSelectedDate = new Date();
 
 // Mock Data Initializer
 function initMockDatabase() {
@@ -2319,7 +2320,7 @@ function renderAlternateCalendar(view) {
             const day = addDays(monday, index);
             const dateKey = getLocalDateString(day);
             const appointments = data.appointments.filter(a => a.date === dateKey && a.status !== 'cancelled').sort((a, b) => a.time.localeCompare(b.time));
-            return `<button class="week-day-card ${dateKey === PROTOTYPE_DATE_STR ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')">
+            return `<button class="week-day-card ${dateKey === getLocalDateString(new Date()) ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')">
                 <span>${day.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}</span>
                 <strong>${day.getDate()}</strong>
                 <small>${appointments.length} horário${appointments.length === 1 ? '' : 's'}</small>
@@ -2342,7 +2343,7 @@ function renderAlternateCalendar(view) {
                 const dateKey = getLocalDateString(day);
                 const appointments = data.appointments.filter(a => a.date === dateKey && a.status !== 'cancelled');
                 const revenue = appointments.reduce((sum, a) => sum + (data.services.find(s => s.id === a.serviceId)?.price || 0), 0);
-                return `<button class="month-day ${dateKey === PROTOTYPE_DATE_STR ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')"><strong>${index + 1}</strong><span>${appointments.length || ''}</span>${revenue ? `<small>${formatCurrency(revenue).replace(',00','')}</small>` : ''}</button>`;
+                return `<button class="month-day ${dateKey === getLocalDateString(new Date()) ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')"><strong>${index + 1}</strong><span>${appointments.length || ''}</span>${revenue ? `<small>${formatCurrency(revenue).replace(',00','')}</small>` : ''}</button>`;
             }).join('')}</div>`;
     }
 }
