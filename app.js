@@ -1132,12 +1132,12 @@ function openWhatsAppCRMSimulator(clientId) {
 Que tal agendar um horário para esta semana e dar um trato no visual? 
 
 Você pode marcar direto pelo nosso link inteligente:
-lexion.com.br/agendar/${data.businessInfo.slug}
+${getPublicBookingUrl(data.businessInfo.slug)}
 
 Aguardo você!`;
 
     document.getElementById('wa-message-draft').innerText = draftText;
-    document.getElementById('wa-link-placeholder').innerText = `lexion.com.br/agendar/${data.businessInfo.slug}`;
+    document.getElementById('wa-link-placeholder').innerText = getPublicBookingUrl(data.businessInfo.slug);
     
     // Set link for WhatsApp Web
     const whatsappPhone = client.phone.replace(/\D/g, ''); // leave only numbers
@@ -1686,7 +1686,7 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     showToast("Dados do estabelecimento atualizados!", "success");
     
     // Update booking link label in Simulator
-    document.getElementById('biz-link-url').innerText = `https://lexion.com.br/agendar/${slug}`;
+    document.getElementById('biz-link-url').innerText = getPublicBookingUrl(slug);
 });
 
 // Cloud Migration
@@ -1841,6 +1841,38 @@ document.getElementById('btn-delete-professional').addEventListener('click', () 
 
 
 // --- 7. PUBLIC BOOKING LINK SIMULATOR ---
+// URL real da página pública de agendamento (funciona onde o site estiver hospedado)
+function getPublicBookingUrl(slug) {
+    return `${location.origin}/${slug}`;
+}
+
+// Quando acessado por /<slug>, o container full-screen substitui o mockup do iPhone
+let publicBookingContainer = null;
+
+function getPublicSlugFromUrl() {
+    const path = decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g, '');
+    if (!path || path.toLowerCase() === 'index.html') return null;
+    return path;
+}
+
+function initPublicBookingPage() {
+    document.body.classList.add('public-booking-mode');
+    document.querySelector('.app-container').style.display = 'none';
+    document.title = `${data.businessInfo.name} - Agendamento Online`;
+
+    const page = document.createElement('div');
+    page.id = 'public-booking-page';
+    const content = document.createElement('div');
+    content.className = 'phone-content';
+    page.appendChild(content);
+    document.body.appendChild(page);
+    publicBookingContainer = content;
+
+    simulationStep = 1;
+    simSelection = { serviceId: '', profId: '', date: '', time: '', clientName: '', clientPhone: '' };
+    renderPhoneScreen();
+}
+
 let simulationStep = 1;
 let simSelection = {
     serviceId: '',
@@ -1864,7 +1896,7 @@ function initPhoneSimulator() {
     simSelection = { serviceId: '', profId: '', date: '', time: '', clientName: '', clientPhone: '' };
     
     // Update link code text
-    document.getElementById('biz-link-url').innerText = `https://lexion.com.br/agendar/${data.businessInfo.slug}`;
+    document.getElementById('biz-link-url').innerText = getPublicBookingUrl(data.businessInfo.slug);
     
     renderPhoneScreen();
 }
@@ -1875,7 +1907,7 @@ document.getElementById('btn-reset-phone').addEventListener('click', () => {
 });
 
 function renderPhoneScreen() {
-    const phoneScreen = document.getElementById('phone-booking-content');
+    const phoneScreen = publicBookingContainer || document.getElementById('phone-booking-content');
     phoneScreen.innerHTML = '';
 
     // Step 1: Select Service
@@ -2449,6 +2481,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 1. Inicializa Conexão Supabase (credenciais fixas no api.js)
     await DataService.init();
 
+    // Acesso via link público (ex: https://site.com/nome-do-salao) abre direto
+    // o agendamento do cliente, sem passar pela tela de login
+    if (getPublicSlugFromUrl()) {
+        initMockDatabase();
+        await loadData();
+        initPublicBookingPage();
+        return;
+    }
+
     // 2. Se o Supabase está configurado mas não logado, mostra tela de login
     const authOverlay = document.getElementById('auth-overlay');
     const appContainer = document.getElementById('app-container');
@@ -2467,10 +2508,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     initNavigation();
     initModals();
-    
+
     // Set display header date
     document.getElementById('current-date-display').querySelector('span').innerText = formatDateDisplay(currentSelectedDate);
-    
+
     // Set document initial render
     renderDashboard();
     renderMessages();

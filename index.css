@@ -2485,6 +2485,7 @@ body {
     }
 }
 
+
 /* ========================================================================== */
 /* MOBILE-FIRST OPERATIONS: MESSAGES, CALENDAR & CLIENT 360                   */
 /* ========================================================================== */
@@ -2625,5 +2626,29 @@ body {
     .data-table td:last-child .btn { justify-content: center; min-height: 38px; }
     .mobile-tab-bar { height: 72px; }
     .tab-item { min-height: 48px; justify-content: center; }
+}
+
+
+/* ==========================================================================
+   PUBLIC BOOKING PAGE (acesso real via /<slug do salão>)
+   ========================================================================== */
+#public-booking-page {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: flex;
+    justify-content: center;
+    background-color: #0d131f;
+}
+
+body.public-booking-mode .mobile-tab-bar {
+    display: none !important;
+}
+
+#public-booking-page .phone-content {
+    width: 100%;
+    max-width: 480px;
+    height: 100%;
+    font-size: 14px;
 }
 

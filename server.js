@@ -24,18 +24,16 @@ const server = http.createServer((req, res) => {
     const filePath = path.join(__dirname, safeUrl);
     
     fs.stat(filePath, (err, stats) => {
-        if (err || !stats.isFile()) {
-            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-            res.end('404 Not Found');
-            return;
-        }
-        
-        const ext = path.extname(filePath).toLowerCase();
+        // Fallback SPA: qualquer rota desconhecida serve o index.html
+        // (mesmo comportamento do rewrite configurado no vercel.json)
+        const finalPath = (err || !stats.isFile()) ? path.join(__dirname, 'index.html') : filePath;
+
+        const ext = path.extname(finalPath).toLowerCase();
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-        
+
         res.writeHead(200, { 'Content-Type': contentType });
-        
-        const stream = fs.createReadStream(filePath);
+
+        const stream = fs.createReadStream(finalPath);
         stream.on('error', (streamErr) => {
             console.error('Stream error:', streamErr);
             // Headers already sent, so just end
