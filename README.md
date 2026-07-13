@@ -1,4 +1,4 @@
-# Lexion — Dashboard de Barbearia & Salão
+# Lexion — CRM de Barbearia & Salão
 
 Sistema de gestão para salões e barbearias: agenda, clientes, leads (Kanban),
 financeiro, automações de mensagens e link público de agendamento.
