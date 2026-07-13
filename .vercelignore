@@ -1,0 +1,8 @@
+# Somente a pasta public/ vai para o site.
+# server.js NUNCA pode subir: o Vercel o detecta como servidor Node
+# e tenta rodá-lo como funcao serverless, derrubando o site (erro 500).
+server.js
+docs
+*.md
+.claude
+.gitignore

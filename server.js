@@ -1,6 +1,13 @@
+/**
+ * Servidor de desenvolvimento LOCAL (não é usado em produção).
+ * Em produção o site é servido como estático pelo Vercel, a partir de public/.
+ * Uso: node server.js  →  http://localhost:8000
+ */
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+
+const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const MIME_TYPES = {
     '.html': 'text/html',
@@ -20,13 +27,18 @@ const server = http.createServer((req, res) => {
     if (safeUrl === '/') {
         safeUrl = '/index.html';
     }
-    
-    const filePath = path.join(__dirname, safeUrl);
-    
+
+    const filePath = path.join(PUBLIC_DIR, safeUrl);
+    if (!filePath.startsWith(PUBLIC_DIR)) {
+        res.writeHead(403);
+        res.end('Forbidden');
+        return;
+    }
+
     fs.stat(filePath, (err, stats) => {
         // Fallback SPA: qualquer rota desconhecida serve o index.html
         // (mesmo comportamento do rewrite configurado no vercel.json)
-        const finalPath = (err || !stats.isFile()) ? path.join(__dirname, 'index.html') : filePath;
+        const finalPath = (err || !stats.isFile()) ? path.join(PUBLIC_DIR, 'index.html') : filePath;
 
         const ext = path.extname(finalPath).toLowerCase();
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
@@ -45,5 +57,5 @@ const server = http.createServer((req, res) => {
 
 const PORT = 8000;
 server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/`);
+    console.log(`Servidor local em http://localhost:${PORT}/`);
 });

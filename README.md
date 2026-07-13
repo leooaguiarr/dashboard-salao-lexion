@@ -1,0 +1,54 @@
+# Lexion — Dashboard de Barbearia & Salão
+
+Sistema de gestão para salões e barbearias: agenda, clientes, leads (Kanban),
+financeiro, automações de mensagens e link público de agendamento.
+
+**Produção:** https://lexionsalao.vercel.app
+
+## Estrutura do projeto
+
+```
+public/           ← O site (é SÓ isso que o Vercel publica)
+  index.html      ← Página única (dashboard + login + página pública)
+  app.js          ← Lógica principal do app
+  api.js          ← Camada de dados (Supabase + fallback localStorage)
+  index.css       ← Estilos do app
+  auth.css        ← Estilos da tela de login
+  assets/         ← Imagens
+docs/             ← Documentação (não vai para o site)
+  supabase_setup.sql                      ← Script de criação das tabelas no Supabase
+  plano_appweb_cabeleireiros_lexion.md    ← Plano do produto
+server.js         ← Servidor de desenvolvimento local (NÃO sobe para o Vercel)
+vercel.json       ← Configuração do deploy (pasta public/ + rotas do link público)
+.vercelignore     ← Garante que só o site estático seja publicado
+```
+
+## Rodar localmente
+
+```bash
+node server.js
+# abre http://localhost:8000
+```
+
+## Deploy
+
+Deploy automático pelo Vercel a cada push na branch `main`.
+
+> **Importante:** o `server.js` é apenas para desenvolvimento local. Ele está no
+> `.vercelignore` porque, se subir para o Vercel, é detectado como servidor Node
+> e derruba o site com erro 500 (`FUNCTION_INVOCATION_FAILED`).
+
+## Link público de agendamento
+
+Cada salão tem um link no formato `https://lexionsalao.vercel.app/<slug>`
+(o slug é configurado em Configurações → Dados do Estabelecimento).
+Qualquer rota desconhecida é reescrita para o `index.html` (ver `vercel.json`),
+e o app detecta o slug na URL e abre a página de agendamento do cliente,
+sem passar pela tela de login.
+
+## Banco de dados (Supabase)
+
+- Credenciais em `public/api.js` (URL + chave `anon`, protegida por RLS).
+- Tabelas e políticas: rodar `docs/supabase_setup.sql` no SQL Editor do Supabase.
+- Sem login (ou sem Supabase), o app funciona em modo demo com dados no
+  `localStorage` do navegador.

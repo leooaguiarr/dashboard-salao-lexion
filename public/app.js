@@ -1672,7 +1672,7 @@ configTabButtons.forEach(btn => {
 });
 
 // Config Form Submissions
-// Biz Info
+// Biz Info (dados do estabelecimento + nome/foto do perfil na sidebar)
 document.getElementById('form-business-info').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('biz-name').value;
@@ -1683,10 +1683,27 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
 
     data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address };
     saveData(STATE_KEYS.BUSINESS_INFO, data.businessInfo);
-    showToast("Dados do estabelecimento atualizados!", "success");
-    
+
     // Update booking link label in Simulator
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(slug);
+
+    // Nome e foto exibidos na sidebar
+    if (name) {
+        localStorage.setItem('lexion_biz_name', name);
+    }
+    const bizAvatarFile = document.getElementById('biz-avatar')?.files[0];
+    if (bizAvatarFile) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            localStorage.setItem('lexion_biz_avatar', event.target.result);
+            updateUserProfileUI();
+            showToast("Dados do estabelecimento atualizados!", "success");
+        };
+        reader.readAsDataURL(bizAvatarFile);
+    } else {
+        updateUserProfileUI();
+        showToast("Dados do estabelecimento atualizados!", "success");
+    }
 });
 
 // Cloud Migration
@@ -2625,29 +2642,3 @@ document.getElementById('btn-migrate-supabase-direct')?.addEventListener('click'
     }
 });
 
-// Configurações do Salão (Nome e Foto do Perfil)
-document.getElementById('form-business-info')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const bizName = document.getElementById('biz-name').value;
-    const bizAvatarFile = document.getElementById('biz-avatar').files[0];
-    
-    // Salva o nome imediatamente
-    if (bizName) {
-        localStorage.setItem('lexion_biz_name', bizName);
-    }
-    
-    // Processa a imagem se existir
-    if (bizAvatarFile) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            localStorage.setItem('lexion_biz_avatar', event.target.result);
-            updateUserProfileUI();
-            showToast("Configurações atualizadas com sucesso!", "success");
-        };
-        reader.readAsDataURL(bizAvatarFile);
-    } else {
-        updateUserProfileUI();
-        showToast("Configurações atualizadas com sucesso!", "success");
-    }
-});
