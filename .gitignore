@@ -30,3 +30,9 @@ Thumbs.db
 .gemini/
 .agents/
 .vscode/
+
+# Vercel CLI local
+.vercel/
+
+.vercel
+.env*
