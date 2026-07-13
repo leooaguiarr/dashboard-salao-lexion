@@ -1865,6 +1865,8 @@ function getPublicBookingUrl(slug) {
 
 // Quando acessado por /<slug>, o container full-screen substitui o mockup do iPhone
 let publicBookingContainer = null;
+let publicSalonMode = false; // true = dados reais do Supabase (link público de verdade)
+let publicSlug = null;
 
 function getPublicSlugFromUrl() {
     const path = decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g, '');
@@ -1872,10 +1874,9 @@ function getPublicSlugFromUrl() {
     return path;
 }
 
-function initPublicBookingPage() {
+async function initPublicBookingPage() {
     document.body.classList.add('public-booking-mode');
     document.querySelector('.app-container').style.display = 'none';
-    document.title = `${data.businessInfo.name} - Agendamento Online`;
 
     const page = document.createElement('div');
     page.id = 'public-booking-page';
@@ -1885,9 +1886,56 @@ function initPublicBookingPage() {
     document.body.appendChild(page);
     publicBookingContainer = content;
 
+    publicSlug = getPublicSlugFromUrl();
     simulationStep = 1;
     simSelection = { serviceId: '', profId: '', date: '', time: '', clientName: '', clientPhone: '' };
-    renderPhoneScreen();
+
+    content.innerHTML = `
+        <div class="pub-loading">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Carregando agenda...</p>
+        </div>`;
+
+    // Busca os dados reais do salão pelo slug no Supabase
+    let salon = null;
+    if (DataService.isSupabaseConfigured()) {
+        try {
+            salon = await DataService.getPublicSalon(publicSlug);
+        } catch (err) {
+            console.error("Erro ao buscar dados públicos do salão:", err);
+        }
+    }
+
+    if (salon) {
+        publicSalonMode = true;
+        data.businessInfo = salon.businessInfo || {};
+        data.services = salon.services || [];
+        data.professionals = salon.professionals || [];
+        // bookedSlots tem só { profId, date, time, status } — o suficiente
+        // para a grade de horários livres marcar os ocupados
+        data.appointments = salon.bookedSlots || [];
+        currentSelectedDate = new Date(); // agenda real começa hoje
+        document.title = `${data.businessInfo.name} - Agendamento Online`;
+        renderPhoneScreen();
+    } else if (DataService.isSupabaseConfigured()) {
+        // Supabase ativo, mas nenhum salão tem esse slug
+        renderPublicNotFound();
+    } else {
+        // Sem Supabase (ambiente local): modo demonstração
+        initMockDatabase();
+        await loadData();
+        document.title = `${data.businessInfo.name} - Agendamento Online`;
+        renderPhoneScreen();
+    }
+}
+
+function renderPublicNotFound() {
+    publicBookingContainer.innerHTML = `
+        <div class="pub-loading">
+            <i class="fa-solid fa-link-slash" style="color: #64748b;"></i>
+            <p><strong>Link de agendamento não encontrado.</strong></p>
+            <p style="color:#94a3b8;">Confira se o endereço está correto ou peça um novo link ao estabelecimento.</p>
+        </div>`;
 }
 
 let simulationStep = 1;
@@ -2017,7 +2065,7 @@ function renderPhoneScreen() {
             <div class="pub-section">
                 <div class="form-group" style="margin-bottom:12px;">
                     <label style="color:#94a3b8; font-size:10px;">SELECIONE A DATA:</label>
-                    <input type="date" id="pub-sim-date" class="pub-input" value="${testDate}" onchange="changeSimDate(this.value)">
+                    <input type="date" id="pub-sim-date" class="pub-input" value="${testDate}" ${publicSalonMode ? `min="${getLocalDateString(new Date())}"` : ''} onchange="changeSimDate(this.value)">
                 </div>
                 <h5 class="pub-section-title" style="margin-bottom:8px;">Horários Disponíveis:</h5>
                 <div class="pub-slots-grid">
@@ -2142,15 +2190,48 @@ window.submitSimDateTimeStep = function() {
     renderPhoneScreen();
 };
 
-window.submitSimBooking = function(event) {
+window.submitSimBooking = async function(event) {
     event.preventDefault();
-    
+
     const name = document.getElementById('pub-sim-name').value;
     const phone = document.getElementById('pub-sim-phone').value;
-    
+
     simSelection.clientName = name;
     simSelection.clientPhone = phone;
 
+    // MODO PÚBLICO REAL: grava direto no Supabase do salão (via RPC)
+    if (publicSalonMode) {
+        const btn = event.target.querySelector('.pub-btn-submit');
+        const originalBtn = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Confirmando...';
+        try {
+            const result = await DataService.createPublicBooking(publicSlug, {
+                name: name,
+                phone: phone,
+                serviceId: simSelection.serviceId,
+                profId: simSelection.profId,
+                date: simSelection.date,
+                time: simSelection.time
+            });
+            if (!result || result.ok !== true) {
+                throw new Error((result && result.error) || 'Não foi possível concluir o agendamento.');
+            }
+            // Marca o horário como ocupado e mostra o profissional realmente atribuído
+            data.appointments.push({ profId: result.profId, date: simSelection.date, time: simSelection.time, status: 'scheduled' });
+            if (simSelection.profId === 'any') simSelection.profId = result.profId;
+            simulationStep = 5;
+            renderPhoneScreen();
+        } catch (err) {
+            console.error("Erro no agendamento público:", err);
+            showToast(err.message || 'Erro ao agendar. Tente novamente.', 'danger');
+            btn.disabled = false;
+            btn.innerHTML = originalBtn;
+        }
+        return;
+    }
+
+    // MODO LOCAL/DEMO: salva no navegador
     // 1. Check or Create Client in DB
     let client = data.clients.find(c => c.phone === phone);
     if (!client) {
@@ -2501,9 +2582,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Acesso via link público (ex: https://site.com/nome-do-salao) abre direto
     // o agendamento do cliente, sem passar pela tela de login
     if (getPublicSlugFromUrl()) {
-        initMockDatabase();
-        await loadData();
-        initPublicBookingPage();
+        await initPublicBookingPage();
         return;
     }
 

@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS business_info CASCADE;
 
 CREATE TABLE business_info (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
     phone TEXT,
@@ -53,25 +53,25 @@ CREATE TABLE clients (
     instagram TEXT,
     birth TEXT,
     frequency INTEGER,
-    lastVisit TEXT,
+    "lastVisit" TEXT,
     notes TEXT,
     status TEXT,
     active BOOLEAN DEFAULT TRUE,
-    photoUrl TEXT,
+    "photoUrl" TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE TABLE appointments (
     id TEXT PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    clientId TEXT,
-    serviceId TEXT,
-    profId TEXT,
+    "clientId" TEXT,
+    "serviceId" TEXT,
+    "profId" TEXT,
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     status TEXT,
-    paymentStatus TEXT,
-    paymentMethod TEXT,
+    "paymentStatus" TEXT,
+    "paymentMethod" TEXT,
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -96,7 +96,7 @@ CREATE TABLE transactions (
     date TEXT,
     description TEXT,
     category TEXT,
-    paymentMethod TEXT,
+    "paymentMethod" TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -117,3 +117,6 @@ CREATE POLICY "Tenant isolation" ON clients FOR ALL USING (auth.uid() = user_id)
 CREATE POLICY "Tenant isolation" ON appointments FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Tenant isolation" ON leads FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Tenant isolation" ON transactions FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- 4. IMPORTANTE: depois deste script, rode também o
+--    public_booking_setup.sql (funções do link público de agendamento)

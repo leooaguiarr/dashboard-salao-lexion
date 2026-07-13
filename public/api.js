@@ -174,6 +174,38 @@ const DataService = {
         if (localData.transactions.length) await supabaseClient.from('transactions').upsert(addUserId(localData.transactions));
     },
 
+    // -------------------------
+    // LINK PÚBLICO DE AGENDAMENTO (sem login)
+    // As duas funções chamam RPCs no Supabase criadas por
+    // docs/public_booking_setup.sql
+    // -------------------------
+
+    // Retorna { businessInfo, services, professionals, bookedSlots }
+    // ou null se o slug não existir
+    async getPublicSalon(slug) {
+        if (!supabaseClient) return null;
+        const { data, error } = await supabaseClient.rpc('get_public_salon', { p_slug: slug });
+        if (error) throw error;
+        return data;
+    },
+
+    // Grava cliente + agendamento + lead na conta do salão dono do slug.
+    // Retorna { ok: true, appointmentId, profId } ou { ok: false, error }
+    async createPublicBooking(slug, booking) {
+        if (!supabaseClient) throw new Error("Supabase não configurado.");
+        const { data, error } = await supabaseClient.rpc('create_public_booking', {
+            p_slug: slug,
+            p_name: booking.name,
+            p_phone: booking.phone,
+            p_service_id: booking.serviceId,
+            p_prof_id: booking.profId,
+            p_date: booking.date,
+            p_time: booking.time
+        });
+        if (error) throw error;
+        return data;
+    },
+
     async upsertItem(table, item) {
         if (supabaseClient && this.isAuthenticated()) {
             const withUser = { ...item, user_id: this.getUserId() };

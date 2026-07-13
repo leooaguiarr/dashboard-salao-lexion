@@ -2652,3 +2652,19 @@ body.public-booking-mode .mobile-tab-bar {
     font-size: 14px;
 }
 
+.pub-loading {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 30px;
+    text-align: center;
+}
+
+.pub-loading i {
+    font-size: 32px;
+    color: var(--primary, #8b5cf6);
+}
+

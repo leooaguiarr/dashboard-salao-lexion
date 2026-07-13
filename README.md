@@ -46,9 +46,20 @@ Qualquer rota desconhecida é reescrita para o `index.html` (ver `vercel.json`),
 e o app detecta o slug na URL e abre a página de agendamento do cliente,
 sem passar pela tela de login.
 
+A página pública busca os dados reais do salão (serviços, profissionais e
+horários ocupados) no Supabase pelo slug, e grava o agendamento direto na
+conta do salão — via funções RPC `get_public_salon` e `create_public_booking`
+(criadas por `docs/public_booking_setup.sql`). Se o slug não existir no banco,
+mostra "link não encontrado"; sem Supabase (dev local), cai no modo demo.
+
 ## Banco de dados (Supabase)
 
 - Credenciais em `public/api.js` (URL + chave `anon`, protegida por RLS).
-- Tabelas e políticas: rodar `docs/supabase_setup.sql` no SQL Editor do Supabase.
+- Instalação do zero: rodar `docs/supabase_setup.sql` e depois
+  `docs/public_booking_setup.sql` no SQL Editor do Supabase.
+- Banco já existente: rodar apenas `docs/public_booking_setup.sql`
+  (idempotente — também corrige nomes de colunas camelCase e a constraint
+  de unicidade de `business_info`, sem os quais a sincronização do
+  dashboard falha silenciosamente).
 - Sem login (ou sem Supabase), o app funciona em modo demo com dados no
   `localStorage` do navegador.
