@@ -883,7 +883,10 @@ body {
     padding-left: 60px; /* Aligns with hour axis */
     border-bottom: 1px solid var(--border-color);
     background-color: rgba(255, 255, 255, 0.01);
+    overflow-y: scroll; /* Força o espaço do scrollbar para alinhar com o grid abaixo */
 }
+.calendar-header-cols::-webkit-scrollbar-thumb { background: transparent; }
+.calendar-header-cols::-webkit-scrollbar-track { background: transparent; }
 
 .calendar-header-col {
     flex: 1;
@@ -900,7 +903,7 @@ body {
 
 .calendar-body-scroll {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: scroll; /* Força scroll permanente para bater com o header em 100% dos casos */
 }
 
 .calendar-time-grid {
