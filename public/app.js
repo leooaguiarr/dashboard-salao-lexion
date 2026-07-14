@@ -490,18 +490,31 @@ function renderDashboard() {
     const atendimentosList = document.getElementById('dash-atendimentos-list');
     atendimentosList.innerHTML = '';
 
-    if (todayAppts.length === 0) {
+    // "Próximos" = só o que ainda vai acontecer (ou está em andamento agora);
+    // atendimentos de horários já passados saem da lista, mas seguem nos KPIs
+    const now = new Date();
+    const isViewingToday = todayStr === getLocalDateString(now);
+    const upcomingAppts = todayAppts.filter(appt => {
+        if (!isViewingToday) return true;
+        const service = data.services.find(s => s.id === appt.serviceId);
+        const [hours, minutes] = appt.time.split(':').map(Number);
+        const end = new Date(now);
+        end.setHours(hours, minutes + (service?.duration || 30), 0, 0);
+        return end >= now;
+    });
+
+    if (upcomingAppts.length === 0) {
         atendimentosList.innerHTML = `
             <div style="text-align: center; padding: 30px; color: var(--text-muted);">
                 <i class="fa-regular fa-calendar-minus" style="font-size: 32px; margin-bottom: 12px; display: block;"></i>
-                Nenhum agendamento para hoje.
+                ${todayAppts.length > 0 ? 'Os atendimentos de hoje já passaram do horário.' : 'Nenhum agendamento para hoje.'}
             </div>
         `;
     } else {
         // Sort appointments by hour
-        todayAppts.sort((a,b) => a.time.localeCompare(b.time));
-        
-        todayAppts.forEach(appt => {
+        upcomingAppts.sort((a,b) => a.time.localeCompare(b.time));
+
+        upcomingAppts.forEach(appt => {
             const client = data.clients.find(c => c.id === appt.clientId) || { name: 'Cliente Desconhecido', phone: '' };
             const service = data.services.find(s => s.id === appt.serviceId) || { name: 'Serviço Desconhecido', price: 0, duration: 30 };
             const professional = data.professionals.find(p => p.id === appt.profId) || { name: 'Profissional' };
