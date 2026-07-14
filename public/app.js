@@ -815,9 +815,15 @@ function renderAgenda() {
                 eventEl.style.height = `${height}px`;
                 
                 eventEl.innerHTML = `
-                    <div class="event-title">${client.name}</div>
-                    <div class="event-desc">${service.name} (${service.duration}m)</div>
-                    <div class="event-time">${appt.time}</div>
+                    <div style="padding-right: 20px; overflow: hidden;">
+                        <div class="event-title" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                            ${escapeHTML(client.name)}
+                        </div>
+                        <div class="event-desc" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; opacity: 0.9;">
+                            ${escapeHTML(service.name)}
+                        </div>
+                    </div>
+                    <div class="event-time" style="position: absolute; bottom: 4px; right: 6px; font-size: 9px; font-weight: 600; line-height: 1;">${appt.time}</div>
                     ${renderAppointmentCommunicationBadge(appt.id)}
                 `;
                 

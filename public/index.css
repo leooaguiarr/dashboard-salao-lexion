@@ -987,6 +987,14 @@ body {
 .calendar-appt-event.no_show { background-color: var(--danger-light); border-left-color: var(--danger); color: #fca5a5; }
 .calendar-appt-event.cancelled { background-color: var(--gray-light); border-left-color: var(--gray); color: #cbd5e1; }
 
+.calendar-appt-event .comm-badge {
+    top: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+}
+
 .event-title {
     font-weight: 700;
     white-space: nowrap;
