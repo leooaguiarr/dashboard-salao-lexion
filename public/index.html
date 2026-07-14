@@ -11,8 +11,8 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS Customizado -->
-    <link rel="stylesheet" href="/index.css?v=6">
-    <link rel="stylesheet" href="/auth.css?v=6">
+    <link rel="stylesheet" href="/index.css?v=7">
+    <link rel="stylesheet" href="/auth.css?v=7">
 </head>
 <body class="dark-theme">
     <!-- TELA DE LOGIN -->
@@ -60,6 +60,11 @@
                     <div id="auth-error" class="auth-error" style="display: none;">
                         <i class="fa-solid fa-circle-exclamation"></i> <span>Email ou senha incorretos.</span>
                     </div>
+
+                    <footer class="auth-footer">
+                        <span>Desenvolvido por Lexion Consultoria · 2026</span>
+                        <button type="button" class="auth-footer-link" onclick="openModal('modal-privacy-policy')">Privacidade e LGPD</button>
+                    </footer>
                 </div>
             </div>
         </div>
@@ -87,7 +92,7 @@
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Agenda</span>
                 </a>
-                <a href="#" class="menu-item" data-target="mensagens">
+                <a href="#" class="menu-item feature-paused" data-target="mensagens" aria-hidden="true" tabindex="-1">
                     <i class="fa-solid fa-message"></i>
                     <span>Mensagens</span>
                     <span class="badge badge-info" id="badge-messages">0</span>
@@ -97,7 +102,7 @@
                     <span>Clientes</span>
                     <span class="badge badge-alert" id="badge-recall" style="display:none;">0</span>
                 </a>
-                <a href="#" class="menu-item" data-target="leads">
+                <a href="#" class="menu-item feature-paused" data-target="leads" aria-hidden="true" tabindex="-1">
                     <i class="fa-solid fa-rectangle-list"></i>
                     <span>Kanban de Leads</span>
                     <span class="badge badge-info" id="badge-leads" style="display:none;">0</span>
@@ -122,7 +127,7 @@
                     <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
                         <div class="profile-info">
                             <span class="profile-name">Lexion Salão</span>
-                            <span class="profile-role">Desenvolvido por Lexion Consultoria</span>
+                            <span class="profile-role">Desenvolvido por Lexion Consultoria · 2026</span>
                         </div>
                     </div>
                     <button id="btn-logout-sidebar" title="Sair do Sistema" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; padding: 5px;">
@@ -233,7 +238,7 @@
                             </div>
 
                             <!-- Leads Panel -->
-                            <div class="dashboard-panel glass-effect">
+                            <div class="dashboard-panel glass-effect feature-paused">
                                 <div class="panel-header">
                                     <h4 class="panel-title"><i class="fa-solid fa-star text-amber"></i> Conversão de Leads</h4>
                                 </div>
@@ -1124,6 +1129,29 @@
         </div>
     </div>
 
+    <!-- MODAL: POLÍTICA DE PRIVACIDADE / LGPD -->
+    <div class="modal-backdrop privacy-modal" id="modal-privacy-policy">
+        <div class="modal-dialog modal-dialog-wide glass-effect">
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">Privacidade</span>
+                    <h4 class="modal-title">Política de Privacidade e LGPD</h4>
+                </div>
+                <button class="modal-close" data-close-modal="modal-privacy-policy" onclick="closeModal('modal-privacy-policy')">&times;</button>
+            </div>
+            <div class="modal-body privacy-content">
+                <p>A Lexion Salão coleta apenas os dados necessários para gestão de agenda, atendimento e relacionamento com clientes do estabelecimento, como nome, telefone, histórico de agendamentos, serviços escolhidos e observações cadastradas pelo profissional.</p>
+                <p>Esses dados são usados para organizar horários, confirmar atendimentos, acompanhar retornos, registrar pagamentos e melhorar a experiência do cliente. Não vendemos dados pessoais e não compartilhamos informações com terceiros fora das ferramentas necessárias para operação do sistema.</p>
+                <p>O responsável pelo estabelecimento deve informar seus clientes sobre o uso dos dados e manter as informações corretas e atualizadas. O cliente pode solicitar correção, atualização ou exclusão de seus dados diretamente ao estabelecimento.</p>
+                <p>Adotamos separação de dados por conta, autenticação e políticas de acesso no banco de dados. Mesmo assim, recomenda-se usar senhas fortes, restringir acessos internos e evitar cadastrar informações sensíveis desnecessárias nas observações.</p>
+                <p>Esta versão é um MVP em evolução. Integrações futuras com WhatsApp, IA e automações seguirão o mesmo princípio: coletar o mínimo necessário e usar os dados somente para a finalidade informada.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-close-modal="modal-privacy-policy" onclick="closeModal('modal-privacy-policy')">Entendi</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Tab Bar -->
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toast-container"></div>
@@ -1132,9 +1160,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Camada de Dados -->
-    <script src="/api.js?v=6"></script>
+    <script src="/api.js?v=7"></script>
 
     <!-- JavaScript Principal -->
-    <script src="/app.js?v=6"></script>
+    <script src="/app.js?v=7"></script>
 </body>
 </html>

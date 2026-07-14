@@ -203,6 +203,10 @@ body {
     color: white;
 }
 
+.feature-paused {
+    display: none !important;
+}
+
 .menu-divider {
     height: 1px;
     background-color: var(--border-color);
@@ -1454,6 +1458,10 @@ body {
     pointer-events: auto;
 }
 
+.privacy-modal {
+    z-index: 100000;
+}
+
 .modal-dialog {
     width: 100%;
     max-width: 500px;
@@ -1469,6 +1477,18 @@ body {
 
 .modal-backdrop.show .modal-dialog {
     transform: scale(1);
+}
+
+.privacy-content {
+    display: grid;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.privacy-content p {
+    margin: 0;
 }
 
 .modal-header {

@@ -189,19 +189,21 @@ let data = {
 
 async function loadData() {
     const loaded = await DataService.loadAll(STATE_KEYS);
-    data.services = loaded.services;
-    data.professionals = loaded.professionals;
-    data.clients = loaded.clients;
-    data.appointments = loaded.appointments;
-    data.leads = loaded.leads;
-    data.transactions = loaded.transactions;
-    data.businessInfo = loaded.businessInfo;
-    data.automationRules = loaded.automationRules;
-    data.messageJobs = loaded.messageJobs;
+    data.services = sanitizeForStorage(loaded.services);
+    data.professionals = sanitizeForStorage(loaded.professionals);
+    data.clients = sanitizeForStorage(loaded.clients);
+    data.appointments = sanitizeForStorage(loaded.appointments);
+    data.leads = sanitizeForStorage(loaded.leads);
+    data.transactions = sanitizeForStorage(loaded.transactions);
+    data.businessInfo = sanitizeForStorage(loaded.businessInfo);
+    data.automationRules = sanitizeForStorage(loaded.automationRules);
+    data.messageJobs = sanitizeForStorage(loaded.messageJobs);
 }
 
 function saveData(key, value) {
-    DataService.save(key, value).catch(console.error);
+    const sanitizedValue = sanitizeForStorage(value);
+    replaceInPlace(value, sanitizedValue);
+    DataService.save(key, sanitizedValue).catch(console.error);
     // Como a variável global 'data' já foi modificada antes de chamar saveData,
     // não precisamos bloquear a UI para redesenhar.
 }
@@ -231,6 +233,56 @@ function timeToMinutes(time) {
     return hours * 60 + minutes;
 }
 
+function sanitizePlainText(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .normalize('NFC')
+        .replace(/[<>]/g, '')
+        .replace(/[\u0000-\u001F\u007F]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function sanitizeSlug(value) {
+    return sanitizePlainText(value)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+function sanitizeForStorage(value) {
+    if (Array.isArray(value)) return value.map(item => sanitizeForStorage(item));
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, sanitizeForStorage(entry)]));
+    }
+    if (typeof value === 'string') return sanitizePlainText(value);
+    return value;
+}
+
+function replaceInPlace(target, source) {
+    if (!target || typeof target !== 'object') return;
+    if (Array.isArray(target) && Array.isArray(source)) {
+        target.splice(0, target.length, ...source);
+        return;
+    }
+    if (!Array.isArray(target) && source && typeof source === 'object' && !Array.isArray(source)) {
+        Object.keys(target).forEach(key => delete target[key]);
+        Object.assign(target, source);
+    }
+}
+
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+}
+
 // Calculate days between two dates
 function daysBetween(date1, date2) {
     const d1 = new Date(date1);
@@ -252,10 +304,11 @@ function showToast(message, type = 'info') {
     if (type === 'danger') icon = 'fa-circle-exclamation';
     if (type === 'warning') icon = 'fa-triangle-exclamation';
 
-    toast.innerHTML = `
-        <i class="fa-solid ${icon}"></i>
-        <span>${message}</span>
-    `;
+    const iconEl = document.createElement('i');
+    iconEl.className = `fa-solid ${icon}`;
+    const textEl = document.createElement('span');
+    textEl.textContent = sanitizePlainText(message);
+    toast.append(iconEl, textEl);
     
     container.appendChild(toast);
     
@@ -1732,11 +1785,11 @@ configTabButtons.forEach(btn => {
 // Biz Info (dados do estabelecimento + nome/foto do perfil na sidebar)
 document.getElementById('form-business-info').addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = document.getElementById('biz-name').value;
-    const slug = document.getElementById('biz-slug').value.replace(/\s+/g, '-').toLowerCase(); // sanitise slug
-    const phone = document.getElementById('biz-phone').value;
-    const instagram = document.getElementById('biz-instagram').value;
-    const address = document.getElementById('biz-address').value;
+    const name = sanitizePlainText(document.getElementById('biz-name').value);
+    const slug = sanitizeSlug(document.getElementById('biz-slug').value) || 'salao';
+    const phone = sanitizePlainText(document.getElementById('biz-phone').value);
+    const instagram = sanitizePlainText(document.getElementById('biz-instagram').value.replace(/^@/, ''));
+    const address = sanitizePlainText(document.getElementById('biz-address').value);
 
     data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address };
     saveData(STATE_KEYS.BUSINESS_INFO, data.businessInfo);
@@ -1965,12 +2018,12 @@ async function initPublicBookingPage() {
 
     if (salon) {
         publicSalonMode = true;
-        data.businessInfo = salon.businessInfo || {};
-        data.services = salon.services || [];
-        data.professionals = salon.professionals || [];
+        data.businessInfo = sanitizeForStorage(salon.businessInfo || {});
+        data.services = sanitizeForStorage(salon.services || []);
+        data.professionals = sanitizeForStorage(salon.professionals || []);
         // bookedSlots tem só { profId, date, time, status } — o suficiente
         // para a grade de horários livres marcar os ocupados
-        data.appointments = salon.bookedSlots || [];
+        data.appointments = sanitizeForStorage(salon.bookedSlots || []);
         currentSelectedDate = new Date(); // agenda real começa hoje
         document.title = `${data.businessInfo.name} - Agendamento Online`;
         renderPhoneScreen();
@@ -2031,14 +2084,16 @@ document.getElementById('btn-reset-phone').addEventListener('click', () => {
 function renderPhoneScreen() {
     const phoneScreen = publicBookingContainer || document.getElementById('phone-booking-content');
     phoneScreen.innerHTML = '';
+    const businessName = escapeHTML(data.businessInfo.name || 'Agendamento Online');
+    const businessAddress = escapeHTML(data.businessInfo.address || '');
 
     // Step 1: Select Service
     if (simulationStep === 1) {
         phoneScreen.innerHTML = `
             <div class="pub-header">
                 <div class="pub-logo">L</div>
-                <h4 class="pub-title">${data.businessInfo.name}</h4>
-                <p class="pub-subtitle"><i class="fa-solid fa-location-dot"></i> ${data.businessInfo.address}</p>
+                <h4 class="pub-title">${businessName}</h4>
+                <p class="pub-subtitle"><i class="fa-solid fa-location-dot"></i> ${businessAddress}</p>
             </div>
             <div class="pub-section">
                 <h5 class="pub-section-title">Passo 1: Selecione o Serviço</h5>
@@ -2046,7 +2101,7 @@ function renderPhoneScreen() {
                     ${data.services.filter(s => s.active).map(srv => `
                         <div class="pub-service-card ${simSelection.serviceId === srv.id ? 'selected' : ''}" onclick="selectSimService('${srv.id}')">
                             <div>
-                                <span class="pub-service-name">${srv.name}</span>
+                                <span class="pub-service-name">${escapeHTML(srv.name)}</span>
                                 <span class="pub-service-dur"><i class="fa-regular fa-clock"></i> ${srv.duration} min</span>
                             </div>
                             <span class="pub-service-price">${formatCurrency(srv.price)}</span>
@@ -2062,7 +2117,7 @@ function renderPhoneScreen() {
         phoneScreen.innerHTML = `
             <div class="pub-header">
                 <div class="pub-logo">L</div>
-                <h4 class="pub-title">${data.businessInfo.name}</h4>
+                <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle">Passo 2: Escolha o Profissional</p>
             </div>
             <div class="pub-section">
@@ -2075,7 +2130,7 @@ function renderPhoneScreen() {
                     ${data.professionals.filter(p => p.active).map(prof => `
                         <div class="pub-select-card ${simSelection.profId === prof.id ? 'selected' : ''}" onclick="selectSimProf('${prof.id}')">
                             <div class="pub-logo" style="width:36px; height:36px; font-size:14px; margin-bottom:6px; background: #64748b;"><i class="fa-solid fa-user"></i></div>
-                            <span class="pub-select-name">${prof.name.split(' ')[0]}</span>
+                            <span class="pub-select-name">${escapeHTML(prof.name.split(' ')[0])}</span>
                         </div>
                     `).join('')}
                 </div>
@@ -2116,7 +2171,7 @@ function renderPhoneScreen() {
         phoneScreen.innerHTML = `
             <div class="pub-header">
                 <div class="pub-logo">L</div>
-                <h4 class="pub-title">${data.businessInfo.name}</h4>
+                <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle">Passo 3: Data e Horário</p>
             </div>
             <div class="pub-section">
@@ -2147,18 +2202,18 @@ function renderPhoneScreen() {
         phoneScreen.innerHTML = `
             <div class="pub-header">
                 <div class="pub-logo">L</div>
-                <h4 class="pub-title">${data.businessInfo.name}</h4>
+                <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle">Passo 4: Seus dados</p>
             </div>
             <div class="pub-section">
                 <form class="pub-form" onsubmit="submitSimBooking(event)">
                     <div class="form-group">
                         <label style="color:#94a3b8; font-size:10px;">SEU NOME COMPLETO:</label>
-                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Ex: Rogério Ceni" required value="${simSelection.clientName}">
+                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Ex: Rogério Ceni" required value="${escapeHTML(simSelection.clientName)}">
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
-                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" required value="${simSelection.clientPhone}">
+                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" required value="${escapeHTML(simSelection.clientPhone)}">
                     </div>
                     <button type="submit" class="pub-btn-submit">Confirmar Agendamento <i class="fa-solid fa-check"></i></button>
                 </form>
@@ -2184,11 +2239,11 @@ function renderPhoneScreen() {
                 <div class="pub-summary-box">
                     <div class="pub-summary-row">
                         <span class="pub-summary-label">Serviço:</span>
-                        <span class="pub-summary-val">${srv.name}</span>
+                        <span class="pub-summary-val">${escapeHTML(srv.name)}</span>
                     </div>
                     <div class="pub-summary-row">
                         <span class="pub-summary-label">Profissional:</span>
-                        <span class="pub-summary-val">${assignedProf ? assignedProf.name : 'Qualquer Um'}</span>
+                        <span class="pub-summary-val">${assignedProf ? escapeHTML(assignedProf.name) : 'Qualquer Um'}</span>
                     </div>
                     <div class="pub-summary-row">
                         <span class="pub-summary-label">Data:</span>
@@ -2250,8 +2305,8 @@ window.submitSimDateTimeStep = function() {
 window.submitSimBooking = async function(event) {
     event.preventDefault();
 
-    const name = document.getElementById('pub-sim-name').value;
-    const phone = document.getElementById('pub-sim-phone').value;
+    const name = sanitizePlainText(document.getElementById('pub-sim-name').value);
+    const phone = sanitizePlainText(document.getElementById('pub-sim-phone').value);
 
     simSelection.clientName = name;
     simSelection.clientPhone = phone;
