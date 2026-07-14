@@ -1240,27 +1240,16 @@ document.getElementById('form-client').addEventListener('submit', (e) => {
 function openWhatsAppCRMSimulator(clientId) {
     const client = data.clients.find(c => c.id === clientId);
     if (!client) return;
-
-    document.getElementById('wa-chat-name').innerText = client.name;
     
     // Generate customizable message suggestion
-    const draftText = `Olá, ${client.name}! Faz uns ${client.daysSinceLast || 30} dias desde o seu último corte aqui na Barbearia Lexion.
-Que tal agendar um horário para esta semana e dar um trato no visual? 
+    const draftText = `Olá, ${client.name}! Tudo bem?`;
 
-Você pode marcar direto pelo nosso link inteligente:
-${getPublicBookingUrl(data.businessInfo.slug)}
-
-Aguardo você!`;
-
-    document.getElementById('wa-message-draft').innerText = draftText;
-    document.getElementById('wa-link-placeholder').innerText = getPublicBookingUrl(data.businessInfo.slug);
-    
-    // Set link for WhatsApp Web
+    // Set link for WhatsApp Web/App
     const whatsappPhone = client.phone.replace(/\D/g, ''); // leave only numbers
     const encodedMsg = encodeURIComponent(draftText);
-    document.getElementById('btn-send-real-whatsapp').href = `https://wa.me/55${whatsappPhone}?text=${encodedMsg}`;
-
-    openModal('modal-whatsapp-crm');
+    
+    // Open directly in a new tab
+    window.open(`https://wa.me/55${whatsappPhone}?text=${encodedMsg}`, '_blank');
 }
 
 // --- 4. KANBAN LEADS BOARD ---
