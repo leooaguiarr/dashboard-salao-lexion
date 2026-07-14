@@ -377,6 +377,32 @@ function renderPageData(pageId) {
     }
 }
 
+// --- ATUALIZAÇÃO AUTOMÁTICA ---
+// Agendamentos feitos pelo link público entram direto na nuvem; aqui o painel
+// busca as novidades sozinho, sem o usuário precisar recarregar a página.
+// Abas de formulário (Configurações/Simulador) não são redesenhadas para não
+// apagar o que o usuário estiver digitando.
+const AUTO_REFRESH_TABS = ['dashboard', 'agenda', 'mensagens', 'clientes', 'leads', 'financeiro'];
+let cloudRefreshBusy = false;
+async function refreshCloudData() {
+    if (!DataService.isSupabaseConfigured() || !DataService.isAuthenticated()) return;
+    if (cloudRefreshBusy || document.hidden) return;
+    if (document.querySelector('.modal.show')) return; // não interrompe quem está com um cadastro aberto
+    cloudRefreshBusy = true;
+    try {
+        await loadData();
+        const activeTab = document.querySelector('.menu-item.active')?.getAttribute('data-target') || 'dashboard';
+        if (AUTO_REFRESH_TABS.includes(activeTab)) renderPageData(activeTab);
+    } catch (err) {
+        console.error('Erro na atualização automática:', err);
+    } finally {
+        cloudRefreshBusy = false;
+    }
+}
+setInterval(refreshCloudData, 30000);
+window.addEventListener('focus', refreshCloudData);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCloudData(); });
+
 // --- MODAL ENGINE ---
 function initModals() {
     // Select all close triggers
