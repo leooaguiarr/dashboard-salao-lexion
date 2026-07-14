@@ -2087,7 +2087,7 @@ function renderPhoneScreen() {
     const businessName = escapeHTML(data.businessInfo.name || 'Agendamento Online');
     const businessAddress = escapeHTML(data.businessInfo.address || '');
 
-    // Step 1: Select Service
+    // Step 1: Client contact details
     if (simulationStep === 1) {
         phoneScreen.innerHTML = `
             <div class="pub-header">
@@ -2096,18 +2096,18 @@ function renderPhoneScreen() {
                 <p class="pub-subtitle"><i class="fa-solid fa-location-dot"></i> ${businessAddress}</p>
             </div>
             <div class="pub-section">
-                <h5 class="pub-section-title">Passo 1: Selecione o Serviço</h5>
-                <div class="pub-services-list">
-                    ${data.services.filter(s => s.active).map(srv => `
-                        <div class="pub-service-card ${simSelection.serviceId === srv.id ? 'selected' : ''}" onclick="selectSimService('${srv.id}')">
-                            <div>
-                                <span class="pub-service-name">${escapeHTML(srv.name)}</span>
-                                <span class="pub-service-dur"><i class="fa-regular fa-clock"></i> ${srv.duration} min</span>
-                            </div>
-                            <span class="pub-service-price">${formatCurrency(srv.price)}</span>
-                        </div>
-                    `).join('')}
-                </div>
+                <h5 class="pub-section-title">Passo 1: Seus dados</h5>
+                <form class="pub-form" onsubmit="submitSimNamePhone(event)">
+                    <div class="form-group">
+                        <label style="color:#94a3b8; font-size:10px;">SEU NOME COMPLETO:</label>
+                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Ex: Rogério Ceni" required value="${escapeHTML(simSelection.clientName)}">
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
+                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" required value="${escapeHTML(simSelection.clientPhone)}">
+                    </div>
+                    <button type="submit" class="pub-btn-submit">Avançar <i class="fa-solid fa-chevron-right"></i></button>
+                </form>
             </div>
         `;
     }
@@ -2197,27 +2197,28 @@ function renderPhoneScreen() {
         `;
     }
     
-    // Step 4: Client contact details
+    // Step 4: Select Service & Confirm
     else if (simulationStep === 4) {
         phoneScreen.innerHTML = `
             <div class="pub-header">
                 <div class="pub-logo">L</div>
                 <h4 class="pub-title">${businessName}</h4>
-                <p class="pub-subtitle">Passo 4: Seus dados</p>
+                <p class="pub-subtitle">Passo 4: Selecione o Serviço</p>
             </div>
             <div class="pub-section">
-                <form class="pub-form" onsubmit="submitSimBooking(event)">
-                    <div class="form-group">
-                        <label style="color:#94a3b8; font-size:10px;">SEU NOME COMPLETO:</label>
-                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Ex: Rogério Ceni" required value="${escapeHTML(simSelection.clientName)}">
-                    </div>
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
-                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" required value="${escapeHTML(simSelection.clientPhone)}">
-                    </div>
-                    <button type="submit" class="pub-btn-submit">Confirmar Agendamento <i class="fa-solid fa-check"></i></button>
-                </form>
-                <button class="btn btn-secondary btn-sm btn-full" onclick="changeSimStep(3)" style="margin-top: 15px;"><i class="fa-solid fa-chevron-left"></i> Voltar</button>
+                <div class="pub-services-list">
+                    ${data.services.filter(s => s.active).map(srv => `
+                        <div class="pub-service-card ${simSelection.serviceId === srv.id ? 'selected' : ''}" onclick="selectSimService('${srv.id}')">
+                            <div>
+                                <span class="pub-service-name">${escapeHTML(srv.name)}</span>
+                                <span class="pub-service-dur"><i class="fa-regular fa-clock"></i> ${srv.duration} min</span>
+                            </div>
+                            <span class="pub-service-price">${formatCurrency(srv.price)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="pub-btn-submit" onclick="submitSimBooking(event)" ${!simSelection.serviceId ? 'disabled' : ''} style="margin-top: 15px;">Confirmar Agendamento <i class="fa-solid fa-check"></i></button>
+                <button class="btn btn-secondary btn-sm btn-full" onclick="changeSimStep(3)" style="margin-top: 8px;"><i class="fa-solid fa-chevron-left"></i> Voltar</button>
             </div>
         `;
     }
@@ -2259,16 +2260,23 @@ function renderPhoneScreen() {
                     </div>
                 </div>
 
-                <button class="pub-btn-submit btn-full" onclick="resetSimToStep1()">Novo Agendamento</button>
+                <button class="pub-btn-submit btn-full" onclick="initPhoneSimulator()">Novo Agendamento</button>
             </div>
         `;
     }
 }
 
 // Phone interaction routing functions (must be global to match string HTML events)
+window.submitSimNamePhone = function(event) {
+    event.preventDefault();
+    simSelection.clientName = sanitizePlainText(document.getElementById('pub-sim-name').value);
+    simSelection.clientPhone = sanitizePlainText(document.getElementById('pub-sim-phone').value);
+    simulationStep = 2;
+    renderPhoneScreen();
+};
+
 window.selectSimService = function(id) {
     simSelection.serviceId = id;
-    simulationStep = 2;
     renderPhoneScreen();
 };
 
@@ -2303,13 +2311,10 @@ window.submitSimDateTimeStep = function() {
 };
 
 window.submitSimBooking = async function(event) {
-    event.preventDefault();
+    if (event && event.preventDefault) event.preventDefault();
 
-    const name = sanitizePlainText(document.getElementById('pub-sim-name').value);
-    const phone = sanitizePlainText(document.getElementById('pub-sim-phone').value);
-
-    simSelection.clientName = name;
-    simSelection.clientPhone = phone;
+    const name = simSelection.clientName;
+    const phone = simSelection.clientPhone;
 
     // MODO PÚBLICO REAL: grava direto no Supabase do salão (via RPC)
     if (publicSalonMode) {
