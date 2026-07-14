@@ -139,13 +139,7 @@ function initMockDatabase() {
         localStorage.setItem(STATE_KEYS.BUSINESS_INFO, JSON.stringify(defaultBiz));
     }
 
-    if (!localStorage.getItem(STATE_KEYS.AUTOMATION_RULES)) {
-        localStorage.setItem(STATE_KEYS.AUTOMATION_RULES, JSON.stringify([
-            { id: 'rule-confirm', name: 'Confirmar agendamento', description: '24 horas antes', icon: 'fa-circle-check', enabled: true },
-            { id: 'rule-reminder', name: 'Lembrete final', description: '2 horas antes', icon: 'fa-clock', enabled: true },
-            { id: 'rule-followup', name: 'Pós-atendimento', description: '2 horas depois', icon: 'fa-star', enabled: true }
-        ]));
-    }
+    seedDefaultAutomationRules();
 
     if (!localStorage.getItem(STATE_KEYS.MESSAGE_JOBS)) {
         localStorage.setItem(STATE_KEYS.MESSAGE_JOBS, JSON.stringify([
@@ -154,6 +148,29 @@ function initMockDatabase() {
             { id: 'msg-3', appointmentId: 'appt-6', clientId: 'cli-3', type: 'reminder', scheduledAt: '2026-07-08T13:30', status: 'failed', text: 'Lembrete: seu corte é hoje às 15:30.' },
             { id: 'msg-4', appointmentId: 'appt-7', clientId: 'cli-7', type: 'confirmation', scheduledAt: '2026-07-08T10:00', status: 'replied', response: 'Confirmado', text: 'Confirme seu combo hoje às 16:30.' }
         ]));
+    }
+}
+
+// As regras da Régua Automática são configuração padrão do app (não dados
+// de demonstração) — precisam existir também nas contas reais da nuvem
+function seedDefaultAutomationRules() {
+    if (!localStorage.getItem(STATE_KEYS.AUTOMATION_RULES)) {
+        localStorage.setItem(STATE_KEYS.AUTOMATION_RULES, JSON.stringify([
+            { id: 'rule-confirm', name: 'Confirmar agendamento', description: '24 horas antes', icon: 'fa-circle-check', enabled: true },
+            { id: 'rule-reminder', name: 'Lembrete final', description: '2 horas antes', icon: 'fa-clock', enabled: true },
+            { id: 'rule-followup', name: 'Pós-atendimento', description: '2 horas depois', icon: 'fa-star', enabled: true }
+        ]));
+    }
+}
+
+// Versões anteriores semeavam os lembretes de demonstração mesmo em contas
+// reais; como lembretes ficam só no navegador, é preciso removê-los daqui
+function purgeDemoMessageJobs() {
+    const demoIds = ['msg-1', 'msg-2', 'msg-3', 'msg-4'];
+    const jobs = JSON.parse(localStorage.getItem(STATE_KEYS.MESSAGE_JOBS)) || [];
+    const cleaned = jobs.filter(job => !demoIds.includes(job.id));
+    if (cleaned.length !== jobs.length) {
+        localStorage.setItem(STATE_KEYS.MESSAGE_JOBS, JSON.stringify(cleaned));
     }
 }
 
@@ -2605,7 +2622,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     updateUserProfileUI();
     updateDatabaseTabUI();
 
-    initMockDatabase();
+    if (DataService.isSupabaseConfigured()) {
+        // Conta real (nuvem): nada de dados de demonstração
+        seedDefaultAutomationRules();
+        purgeDemoMessageJobs();
+    } else {
+        // Sem Supabase: modo demonstração local
+        initMockDatabase();
+    }
     await loadData();
     updateUserProfileUI(); // reflete o nome do salão vindo da nuvem
     initNavigation();
