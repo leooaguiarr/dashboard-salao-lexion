@@ -2698,8 +2698,29 @@ function renderAlternateCalendar(view) {
                 const day = new Date(year, month, index + 1);
                 const dateKey = getLocalDateString(day);
                 const appointments = data.appointments.filter(a => a.date === dateKey && a.status !== 'cancelled');
+                
+                let apptsHTML = '';
+                if (appointments.length > 0) {
+                    const profCounts = {};
+                    appointments.forEach(a => profCounts[a.profId] = (profCounts[a.profId] || 0) + 1);
+                    apptsHTML = Object.entries(profCounts).map(([pId, count]) => {
+                        const profName = (data.professionals.find(p => p.id === pId)?.name || 'Prof').split(' ')[0];
+                        return `<div style="font-size: 10px; color: var(--text-muted); text-align: left; margin-top: 2px;">${profName}: <strong>${count}</strong></div>`;
+                    }).join('');
+                }
+                
                 const revenue = appointments.reduce((sum, a) => sum + (data.services.find(s => s.id === a.serviceId)?.price || 0), 0);
-                return `<button class="month-day ${dateKey === getLocalDateString(new Date()) ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')"><strong>${index + 1}</strong><span>${appointments.length || ''}</span>${revenue ? `<small>${formatCurrency(revenue).replace(',00','')}</small>` : ''}</button>`;
+                
+                return `<button class="month-day ${dateKey === getLocalDateString(new Date()) ? 'is-today' : ''}" onclick="openCalendarDay('${dateKey}')" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <strong>${index + 1}</strong>
+                        ${appointments.length ? `<span style="font-size: 11px; background: rgba(142, 68, 173, 0.3); color: #cba4e3; padding: 2px 6px; border-radius: 10px; line-height: 1.2;">${appointments.length} cli.</span>` : ''}
+                    </div>
+                    <div style="flex: 1; margin-top: 4px; width: 100%;">
+                        ${apptsHTML}
+                    </div>
+                    ${revenue ? `<small style="color: var(--success); font-weight: bold; margin-top: auto; align-self: flex-start;">${formatCurrency(revenue).replace(',00','')}</small>` : ''}
+                </button>`;
             }).join('')}</div>`;
     }
 }
