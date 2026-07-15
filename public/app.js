@@ -2152,19 +2152,39 @@ function renderPhoneScreen() {
             const todayStr = getLocalDateString(now);
             const minTimeMinutes = now.getHours() * 60 + now.getMinutes() + 120; // 2 horas de antecedência
 
+            const selectedService = data.services.find(s => s.id === simSelection.serviceId) || {duration: 30};
+            const proposedDuration = parseInt(selectedService.duration, 10) || 30;
+
             const checkSlotsForDate = (dateStr) => {
                 let slots = [];
                 let hasAnyAvailable = false;
+                
+                const getMinutes = (timeStr) => {
+                    if (!timeStr) return 0;
+                    const parts = timeStr.split(':');
+                    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+                };
+
+                const dayAppointments = data.appointments.filter(a => 
+                    a.profId === assignedProf.id && 
+                    a.date === dateStr && 
+                    a.status !== 'cancelled'
+                ).map(a => {
+                    const srv = data.services.find(s => s.id === a.serviceId) || {duration: 30};
+                    const start = getMinutes(a.time);
+                    return { start, end: start + (parseInt(srv.duration, 10) || 30) };
+                });
+
                 for (let hour = 9; hour < 19; hour++) {
                     ['00', '30'].forEach(min => {
                         const slotTime = `${String(hour).padStart(2,'0')}:${min}`;
-                        // verify conflict
-                        const hasConflict = data.appointments.find(a => 
-                            a.profId === assignedProf.id && 
-                            a.date === dateStr && 
-                            a.time === slotTime && 
-                            a.status !== 'cancelled'
-                        );
+                        const slotStart = hour * 60 + parseInt(min, 10);
+                        const slotEnd = slotStart + proposedDuration;
+                        
+                        // verifica sobreposição de horários (StartA < EndB e EndA > StartB)
+                        const hasConflict = dayAppointments.some(appt => {
+                            return slotStart < appt.end && slotEnd > appt.start;
+                        });
                         
                         let isAvailable = !hasConflict;
                         if (dateStr === todayStr) {
