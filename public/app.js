@@ -572,15 +572,34 @@ function renderDashboard() {
     // "Próximos" = só o que ainda vai acontecer (ou está em andamento agora);
     // atendimentos de horários já passados saem da lista, mas seguem nos KPIs
     const now = new Date();
-    const isViewingToday = todayStr === getLocalDateString(now);
-    const upcomingAppts = todayAppts.filter(appt => {
-        if (!isViewingToday) return true;
-        const service = data.services.find(s => s.id === appt.serviceId);
-        const [hours, minutes] = appt.time.split(':').map(Number);
-        const end = new Date(now);
-        end.setHours(hours, minutes + (service?.duration || 30), 0, 0);
-        return end >= now;
+    const realTodayStr = getLocalDateString(now);
+    
+    // Get all future appointments starting from NOW
+    let allUpcoming = data.appointments.filter(appt => {
+        if (appt.date < realTodayStr) return false;
+        
+        // se for hoje, verifica se já passou do horário de fim
+        if (appt.date === realTodayStr) {
+            const service = data.services.find(s => s.id === appt.serviceId);
+            const [hours, minutes] = appt.time.split(':').map(Number);
+            const end = new Date(now);
+            end.setHours(hours, minutes + (service?.duration || 30), 0, 0);
+            return end >= now;
+        }
+        
+        // se for de amanhã em diante, inclui
+        return true;
     });
+    
+    // Sort chronologically (date then time)
+    allUpcoming.sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.time.localeCompare(b.time);
+    });
+    
+    // Take up to 10
+    const upcomingAppts = allUpcoming.slice(0, 10);
+
 
     if (upcomingAppts.length === 0) {
         atendimentosList.innerHTML = `
@@ -598,12 +617,19 @@ function renderDashboard() {
             const service = data.services.find(s => s.id === appt.serviceId) || { name: 'Serviço Desconhecido', price: 0, duration: 30 };
             const professional = data.professionals.find(p => p.id === appt.profId) || { name: 'Profissional' };
             
+            let dateLabel = '';
+            if (appt.date !== realTodayStr) {
+                const [yyyy, mm, dd] = appt.date.split('-');
+                dateLabel = `<span style="font-size: 11px; color: var(--primary-light); font-weight: 700; display: block; margin-top: 4px; letter-spacing: 0.5px;">${dd}/${mm}</span>`;
+            }
+
             const card = document.createElement('div');
             card.className = `atendimento-card status-${appt.status}`;
             card.innerHTML = `
                 <div class="appt-time-box">
                     <span class="appt-time">${appt.time}</span>
                     <span class="appt-duration">${service.duration} min</span>
+                    ${dateLabel}
                 </div>
                 <div class="appt-client-info">
                     <strong class="appt-client-name">${client.name}</strong>

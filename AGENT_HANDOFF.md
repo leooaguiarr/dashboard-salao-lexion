@@ -18,7 +18,13 @@
    - Na aba **Financeiro**, o gráfico de `Faturamento por Serviço` também foi ajustado para somar apenas com base em `paymentStatus === 'paid'`.
    - Adicionada a porcentagem de representatividade no label de cada serviço no gráfico da aba financeira (ex: `Corte Degradê (40%)`), seguindo o padrão de "Métodos de Pagamento".
 
-3. **Lógica de Agendamento (Google Calendar Style):**
+3. **Dashboard - Próximos Atendimentos Dinâmico:**
+   - A aba inicial do dashboard não exibe mais apenas os agendamentos do dia atual. Agora, ela busca **todos os agendamentos futuros**, priorizando o dia de hoje.
+   - Limitado a **10 agendamentos**. Se hoje houver menos de 10, o sistema puxa automaticamente os agendamentos de amanhã em diante até completar a lista.
+   - O sistema filtra automaticamente os horários que já passaram, fazendo com que a fila "suba" em tempo real durante o dia.
+   - Adicionada uma `dateLabel` visual para sinalizar agendamentos de outros dias.
+
+4. **Lógica de Agendamento (Google Calendar Style):**
    - Refatoração na `renderAgenda` (`app.js`) para suportar sobreposição de horários reais.
    - Quando dois atendimentos colidem no tempo (baseado na duração do serviço), o sistema os agrupa no mesmo `cluster` e divide a largura (`width`) entre eles, renderizando-os **lado a lado** ao invés de um em cima do outro.
 
