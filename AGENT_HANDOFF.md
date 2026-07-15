@@ -33,12 +33,17 @@
    - Refatoração na `renderAgenda` (`app.js`) para suportar sobreposição de horários reais.
    - Quando dois atendimentos colidem no tempo (baseado na duração do serviço), o sistema os agrupa no mesmo `cluster` e divide a largura (`width`) entre eles, renderizando-os **lado a lado** ao invés de um em cima do outro.
 
-2. **UX do Modal de Agendamentos (Mobile First):**
+6. **Melhorias de Interface e Ajustes Finais:**
+   - **Agenda Mensal:** Atualizada para exibir não apenas o total financeiro diário, mas também a contagem detalhada de agendamentos por **profissional** no formato (Nome: Qtd).
+   - **Aba CRM (Clientes):** Remoção da contagem de dias em parênteses dos badges "Em Dia" e "Atrasado" para deixar o layout mais limpo.
+   - **Correção de Layout:** Ajuste nas tags `</div>` da aba de configurações (Dados do Estabelecimento) que estavam causando quebra de layout após a inserção do campo do WhatsApp.
+
+7. **UX do Modal de Agendamentos (Mobile First):**
    - Ao abrir um agendamento existente pela agenda, a tela agora é **simplificada**: exibe um "card de leitura" com nome do cliente, serviço e profissional.
    - Os dados gigantes de cadastro de clientes ficam ocultos, deixando a experiência limpa.
    - Botões de acesso rápido: **[ Pagamento ]** e **[ Horário ]** alternam os campos da modal de forma interativa sem poluir a tela.
 
-3. **Integração Financeira Direta na Agenda:**
+8. **Integração Financeira Direta na Agenda:**
    - Adicionado o campo de `Valor (R$)` na modal de edição. Ele vem **pré-preenchido automaticamente** com o valor padrão do serviço.
    - Quando a opção "Pagamento Realizado?" é alterada para "Sim (Pago)", o sistema pega o `Valor (R$)` (que o usuário pode ter editado se deu desconto) e insere uma nova transação (`type: income`) diretamente no painel **Financeiro** (`data.transactions`).
    - O campo `price` **não é salvo** no objeto `appointment` final enviado ao banco de dados, pois a tabela `appointments` no Supabase não possui essa coluna e retornava erro de *schema cache*. Toda a lógica ocorre de forma efêmera e grava estritamente na tabela/lista de transações.
