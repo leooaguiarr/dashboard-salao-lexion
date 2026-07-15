@@ -130,6 +130,7 @@ function initMockDatabase() {
             slug: 'barbearia-lexion',
             phone: '(11) 99999-8888',
             instagram: 'barbearia.lexion',
+            whatsappRecallMessage: 'Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...',
             address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
             hours: {
                 weekdays: { start: '09:00', end: '19:00' },
@@ -1402,7 +1403,8 @@ function openWhatsAppCRMSimulator(clientId) {
     if (!client) return;
     
     // Generate customizable message suggestion
-    const draftText = `Olá, ${client.name}! Tudo bem?`;
+    let draftText = data.businessInfo.whatsappRecallMessage || "Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...";
+    draftText = draftText.replace(/\{nome\}/g, client.name);
 
     // Set link for WhatsApp Web/App
     const whatsappPhone = client.phone.replace(/\D/g, ''); // leave only numbers
@@ -1912,8 +1914,12 @@ function renderConfig() {
     document.getElementById('biz-name').value = data.businessInfo.name;
     document.getElementById('biz-slug').value = data.businessInfo.slug;
     document.getElementById('biz-phone').value = data.businessInfo.phone;
-    document.getElementById('biz-instagram').value = data.businessInfo.instagram;
-    document.getElementById('biz-address').value = data.businessInfo.address;
+    document.getElementById('biz-instagram').value = data.businessInfo.instagram || '';
+    document.getElementById('biz-address').value = data.businessInfo.address || '';
+    const whatsappMsgElem = document.getElementById('biz-whatsapp-msg');
+    if (whatsappMsgElem) {
+        whatsappMsgElem.value = data.businessInfo.whatsappRecallMessage || 'Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...';
+    }
 }
 
 // Subnavigation within config tabs
@@ -1948,8 +1954,11 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     const phone = sanitizePlainText(document.getElementById('biz-phone').value);
     const instagram = sanitizePlainText(document.getElementById('biz-instagram').value.replace(/^@/, ''));
     const address = sanitizePlainText(document.getElementById('biz-address').value);
+    
+    const whatsappMsgElem = document.getElementById('biz-whatsapp-msg');
+    const whatsappRecallMessage = whatsappMsgElem ? whatsappMsgElem.value : '';
 
-    data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address };
+    data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address, whatsappRecallMessage };
 
     // Update booking link label in Simulator
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(slug);

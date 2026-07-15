@@ -24,7 +24,12 @@
    - O sistema filtra automaticamente os horários que já passaram, fazendo com que a fila "suba" em tempo real durante o dia.
    - Adicionada uma `dateLabel` visual para sinalizar agendamentos de outros dias.
 
-4. **Lógica de Agendamento (Google Calendar Style):**
+4. **Configuração de Mensagem Padrão do WhatsApp:**
+   - Adicionado um campo customizável na aba Configurações > "Dados do Estabelecimento" chamado "Mensagem Padrão de Retorno (WhatsApp)".
+   - Suporte à tag `{nome}` para inserção dinâmica do nome do cliente na mensagem.
+   - O botão "Chamar" na aba Clientes (CRM) agora utiliza esse texto configurado no lugar do texto hardcoded anterior.
+
+5. **Lógica de Agendamento (Google Calendar Style):**
    - Refatoração na `renderAgenda` (`app.js`) para suportar sobreposição de horários reais.
    - Quando dois atendimentos colidem no tempo (baseado na duração do serviço), o sistema os agrupa no mesmo `cluster` e divide a largura (`width`) entre eles, renderizando-os **lado a lado** ao invés de um em cima do outro.
 
