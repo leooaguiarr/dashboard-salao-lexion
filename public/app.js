@@ -1061,8 +1061,8 @@ function openEditAppointment(apptId) {
     document.getElementById('appt-payment').value = appt.paymentStatus;
     document.getElementById('appt-payment-method').value = appt.paymentMethod || 'pix';
     
-    // Set payment value if it exists, otherwise leave empty (so it defaults to service price when saved)
-    document.getElementById('appt-payment-value').value = appt.price ? appt.price : '';
+    // Set payment value if it exists, otherwise use the original service price
+    document.getElementById('appt-payment-value').value = appt.price !== undefined ? appt.price : (service ? service.price : '');
     
     document.getElementById('appt-notes').value = appt.notes || '';
     
