@@ -2145,36 +2145,55 @@ function renderPhoneScreen() {
         const assignedProf = simSelection.profId === 'any' ? activeProfs[0] : activeProfs.find(p => p.id === simSelection.profId);
         
         let availableSlots = [];
-        const testDate = simSelection.date || getLocalDateString(currentSelectedDate);
+        let testDate = simSelection.date || getLocalDateString(currentSelectedDate);
         
         if (assignedProf) {
             const now = new Date();
             const todayStr = getLocalDateString(now);
             const minTimeMinutes = now.getHours() * 60 + now.getMinutes() + 120; // 2 horas de antecedência
 
-            // Generate slots
-            for (let hour = 9; hour < 19; hour++) {
-                ['00', '30'].forEach(min => {
-                    const slotTime = `${String(hour).padStart(2,'0')}:${min}`;
-                    // verify conflict
-                    const hasConflict = data.appointments.find(a => 
-                        a.profId === assignedProf.id && 
-                        a.date === testDate && 
-                        a.time === slotTime && 
-                        a.status !== 'cancelled'
-                    );
-                    
-                    let isAvailable = !hasConflict;
-                    if (testDate === todayStr) {
-                        const slotMinutes = hour * 60 + parseInt(min, 10);
-                        if (slotMinutes < minTimeMinutes) {
-                            isAvailable = false;
+            const checkSlotsForDate = (dateStr) => {
+                let slots = [];
+                let hasAnyAvailable = false;
+                for (let hour = 9; hour < 19; hour++) {
+                    ['00', '30'].forEach(min => {
+                        const slotTime = `${String(hour).padStart(2,'0')}:${min}`;
+                        // verify conflict
+                        const hasConflict = data.appointments.find(a => 
+                            a.profId === assignedProf.id && 
+                            a.date === dateStr && 
+                            a.time === slotTime && 
+                            a.status !== 'cancelled'
+                        );
+                        
+                        let isAvailable = !hasConflict;
+                        if (dateStr === todayStr) {
+                            const slotMinutes = hour * 60 + parseInt(min, 10);
+                            if (slotMinutes < minTimeMinutes) {
+                                isAvailable = false;
+                            }
                         }
-                    }
-                    
-                    availableSlots.push({ time: slotTime, available: isAvailable });
-                });
+                        slots.push({ time: slotTime, available: isAvailable });
+                        if (isAvailable) hasAnyAvailable = true;
+                    });
+                }
+                return { slots, hasAnyAvailable };
+            };
+
+            let result = checkSlotsForDate(testDate);
+            
+            // Avança até o próximo dia disponível (limite de 30 dias para evitar loop)
+            let daysChecked = 0;
+            while (!result.hasAnyAvailable && daysChecked < 30) {
+                const dateObj = new Date(testDate + 'T12:00:00');
+                dateObj.setDate(dateObj.getDate() + 1);
+                testDate = getLocalDateString(dateObj);
+                result = checkSlotsForDate(testDate);
+                daysChecked++;
             }
+
+            availableSlots = result.slots;
+            simSelection.date = testDate; // Atualiza a data se tiver pulado algum dia
         }
 
         phoneScreen.innerHTML = `
@@ -2186,7 +2205,11 @@ function renderPhoneScreen() {
             <div class="pub-section">
                 <div class="form-group" style="margin-bottom:12px;">
                     <label style="color:#94a3b8; font-size:10px;">SELECIONE A DATA:</label>
-                    <input type="date" id="pub-sim-date" class="pub-input" value="${testDate}" ${publicSalonMode ? `min="${getLocalDateString(new Date())}"` : ''} onchange="changeSimDate(this.value)">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm" onclick="changeSimDateOffset(-1)" style="padding: 0 12px;" ${publicSalonMode && testDate <= getLocalDateString(new Date()) ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button>
+                        <input type="date" id="pub-sim-date" class="pub-input" style="flex:1; margin:0;" value="${testDate}" ${publicSalonMode ? `min="${getLocalDateString(new Date())}"` : ''} onchange="changeSimDate(this.value)">
+                        <button class="btn btn-secondary btn-sm" onclick="changeSimDateOffset(1)" style="padding: 0 12px;"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
                 </div>
                 <h5 class="pub-section-title" style="margin-bottom:8px;">Horários Disponíveis:</h5>
                 <div class="pub-slots-grid">
@@ -2303,6 +2326,22 @@ window.changeSimStep = function(step) {
 window.changeSimDate = function(val) {
     simSelection.date = val;
     simSelection.time = ''; // Reset selected slot
+    renderPhoneScreen();
+};
+
+window.changeSimDateOffset = function(offset) {
+    const testDate = simSelection.date || getLocalDateString(new Date());
+    const dateObj = new Date(testDate + 'T12:00:00');
+    dateObj.setDate(dateObj.getDate() + offset);
+    
+    const newDateStr = getLocalDateString(dateObj);
+    const todayStr = getLocalDateString(new Date());
+    
+    // Prevent navigating to the past in public booking mode
+    if (publicSalonMode && newDateStr < todayStr) return;
+    
+    simSelection.date = newDateStr;
+    simSelection.time = '';
     renderPhoneScreen();
 };
 
