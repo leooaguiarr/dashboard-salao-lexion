@@ -794,43 +794,98 @@ function renderAgenda() {
 
         // 3. Filter and position appointments for this professional & selected date
         const dateStr = getLocalDateString(currentSelectedDate);
-        const profAppts = data.appointments.filter(a => a.profId === prof.id && a.date === dateStr && a.status !== 'cancelled');
+        const profApptsRaw = data.appointments.filter(a => a.profId === prof.id && a.date === dateStr && a.status !== 'cancelled');
 
-        profAppts.forEach(appt => {
+        const events = profApptsRaw.map(appt => {
             const client = data.clients.find(c => c.id === appt.clientId) || { name: 'Cliente', phone: '' };
             const service = data.services.find(s => s.id === appt.serviceId) || { name: 'Serviço', price: 0, duration: 30 };
-            
-            // Calculate absolute position based on start time
-            // Calendar starts at 09:00. Every hour is 60px height. 1px = 1 minute.
             const [startHour, startMin] = appt.time.split(':').map(Number);
-            const totalMinutesFromStart = (startHour - 9) * 60 + startMin;
-            const topPosition = totalMinutesFromStart; // 1px per min
-            const height = service.duration;
+            const start = (startHour - 9) * 60 + startMin;
+            const duration = parseInt(service.duration, 10) || 30;
+            const end = start + duration;
+            return { appt, client, service, start, end, duration };
+        });
 
+        events.sort((a, b) => {
+            if (a.start !== b.start) return a.start - b.start;
+            return b.end - a.end;
+        });
+
+        let clusters = [];
+        let currentCluster = { events: [], maxEnd: -1 };
+
+        events.forEach(ev => {
+            if (ev.start < currentCluster.maxEnd) {
+                currentCluster.events.push(ev);
+                currentCluster.maxEnd = Math.max(currentCluster.maxEnd, ev.end);
+            } else {
+                if (currentCluster.events.length > 0) {
+                    clusters.push(currentCluster);
+                }
+                currentCluster = { events: [ev], maxEnd: ev.end };
+            }
+        });
+        if (currentCluster.events.length > 0) {
+            clusters.push(currentCluster);
+        }
+
+        clusters.forEach(cluster => {
+            let columns = [];
+            cluster.events.forEach(ev => {
+                let placed = false;
+                for (let i = 0; i < columns.length; i++) {
+                    const col = columns[i];
+                    const lastEvent = col[col.length - 1];
+                    if (ev.start >= lastEvent.end) {
+                        col.push(ev);
+                        ev.colIndex = i;
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) {
+                    columns.push([ev]);
+                    ev.colIndex = columns.length - 1;
+                }
+            });
+            
+            const numCols = columns.length;
+            cluster.events.forEach(ev => {
+                ev.width = 100 / numCols;
+                ev.left = (100 / numCols) * ev.colIndex;
+            });
+        });
+
+        events.forEach(ev => {
+            const topPosition = ev.start;
+            
             // Only show if within calendar range (09:00 to 19:00 = 600px total height)
             if (topPosition >= 0 && topPosition < 600) {
                 const eventEl = document.createElement('div');
-                eventEl.className = `calendar-appt-event ${appt.status}`;
+                eventEl.className = `calendar-appt-event ${ev.appt.status}`;
                 eventEl.style.top = `${topPosition}px`;
-                eventEl.style.height = `${height}px`;
+                eventEl.style.height = `${ev.duration}px`;
+                
+                eventEl.style.width = `calc(${ev.width}% - 6px)`;
+                eventEl.style.left = `calc(${ev.left}% + 3px)`;
+                eventEl.style.right = 'auto'; // override CSS default right:4px
                 
                 eventEl.innerHTML = `
                     <div style="padding-right: 20px; overflow: hidden;">
                         <div class="event-title" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
-                            ${escapeHTML(client.name)}
+                            ${escapeHTML(ev.client.name)}
                         </div>
                         <div class="event-desc" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; opacity: 0.9;">
-                            ${escapeHTML(service.name)}
+                            ${escapeHTML(ev.service.name)}
                         </div>
                     </div>
-                    <div class="event-time" style="position: absolute; bottom: 4px; right: 6px; font-size: 9px; font-weight: 600; line-height: 1;">${appt.time}</div>
-                    ${renderAppointmentCommunicationBadge(appt.id)}
+                    <div class="event-time" style="position: absolute; bottom: 4px; right: 6px; font-size: 9px; font-weight: 600; line-height: 1;">${ev.appt.time}</div>
+                    ${renderAppointmentCommunicationBadge(ev.appt.id)}
                 `;
                 
-                // Clicking event opens edit modal
                 eventEl.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    openEditAppointment(appt.id);
+                    openEditAppointment(ev.appt.id);
                 });
                 
                 col.appendChild(eventEl);
