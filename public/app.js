@@ -2386,7 +2386,7 @@ window.submitSimBooking = async function(event) {
 
     // MODO PÚBLICO REAL: grava direto no Supabase do salão (via RPC)
     if (publicSalonMode) {
-        const btn = event.target.querySelector('.pub-btn-submit');
+        const btn = event.target.closest('.pub-btn-submit') || document.querySelector('.pub-btn-submit');
         const originalBtn = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Confirmando...';
