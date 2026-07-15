@@ -1787,7 +1787,6 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     const address = sanitizePlainText(document.getElementById('biz-address').value);
 
     data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address };
-    saveData(STATE_KEYS.BUSINESS_INFO, data.businessInfo);
 
     // Update booking link label in Simulator
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(slug);
@@ -1800,12 +1799,15 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     if (bizAvatarFile) {
         const reader = new FileReader();
         reader.onload = function(event) {
+            data.businessInfo.avatarUrl = event.target.result;
+            saveData(STATE_KEYS.BUSINESS_INFO, data.businessInfo);
             localStorage.setItem('lexion_biz_avatar', event.target.result);
             updateUserProfileUI();
-            showToast("Dados do estabelecimento atualizados!", "success");
+            showToast("Dados do estabelecimento atualizados com foto!", "success");
         };
         reader.readAsDataURL(bizAvatarFile);
     } else {
+        saveData(STATE_KEYS.BUSINESS_INFO, data.businessInfo);
         updateUserProfileUI();
         showToast("Dados do estabelecimento atualizados!", "success");
     }
@@ -2099,7 +2101,7 @@ function renderPhoneScreen() {
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
-                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" required value="${escapeHTML(simSelection.clientPhone)}">
+                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" maxlength="15" required value="${escapeHTML(simSelection.clientPhone)}">
                     </div>
                     <button type="submit" class="pub-btn-submit">Avançar <i class="fa-solid fa-chevron-right"></i></button>
                 </form>
@@ -2622,7 +2624,7 @@ function updateUserProfileUI() {
     const logoIconEl = document.getElementById('sidebar-logo-icon');
 
     const salonName = (data.businessInfo && data.businessInfo.name) || localStorage.getItem('lexion_biz_name') || '';
-    const savedAvatar = localStorage.getItem('lexion_biz_avatar') || '';
+    const savedAvatar = (data.businessInfo && data.businessInfo.avatarUrl) || localStorage.getItem('lexion_biz_avatar') || '';
 
     if (salonNameEl) {
         if (salonName) {
@@ -2847,3 +2849,22 @@ document.getElementById('btn-migrate-supabase-direct')?.addEventListener('click'
     }
 });
 
+// --- PHONE NUMBER MASK ---
+const phoneMask = (value) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, '');
+    if (value.length > 11) value = value.substring(0, 11);
+    value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+    value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+    return value;
+};
+
+document.addEventListener('input', function(e) {
+    if (e.target && e.target.tagName === 'INPUT' && (e.target.id.includes('phone') || e.target.id === 'client-phone' || e.target.id === 'lead-phone' || e.target.id === 'prof-phone' || e.target.id === 'biz-phone' || e.target.id === 'pub-sim-phone')) {
+        let oldVal = e.target.value;
+        let newVal = phoneMask(oldVal);
+        if (oldVal !== newVal) {
+            e.target.value = newVal;
+        }
+    }
+});
