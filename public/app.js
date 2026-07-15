@@ -1299,9 +1299,9 @@ function renderClients() {
         if (daysSinceLast === null) {
             statusBadgeHTML = `<span class="status-badge" style="background-color: var(--info-light); color: var(--info);">Novo</span>`;
         } else if (isSumido) {
-            statusBadgeHTML = `<span class="status-badge" style="background-color: var(--danger-light); color: var(--danger);">Atrasado (${daysSinceLast} dias)</span>`;
+            statusBadgeHTML = `<span class="status-badge" style="background-color: var(--danger-light); color: var(--danger);">Atrasado</span>`;
         } else {
-            statusBadgeHTML = `<span class="status-badge" style="background-color: var(--success-light); color: var(--success);">Em Dia (${daysSinceLast} dias)</span>`;
+            statusBadgeHTML = `<span class="status-badge" style="background-color: var(--success-light); color: var(--success);">Em Dia</span>`;
         }
 
         const tr = document.createElement('tr');
