@@ -880,7 +880,7 @@ function renderAgenda() {
                         </div>
                     </div>
                     <div class="event-time" style="position: absolute; bottom: 4px; right: 6px; font-size: 9px; font-weight: 600; line-height: 1;">${ev.appt.time}</div>
-                    ${renderAppointmentCommunicationBadge(ev.appt.id)}
+                    ${renderAppointmentStatusBadge(ev.appt, ev.duration)}
                 `;
                 
                 eventEl.addEventListener('click', (e) => {
@@ -906,6 +906,30 @@ function renderAgenda() {
 
         colsContainer.appendChild(col);
     });
+    
+    // Check for end-of-day pending payments alert
+    const todayStr = getLocalDateString(new Date());
+    if (currentSelectedDate === todayStr) {
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        
+        let hasPendingPast = false;
+        data.appointments.forEach(a => {
+            if (a.date === todayStr && a.paymentStatus === 'pending' && a.status !== 'cancelled') {
+                const s = data.services.find(srv => srv.id === a.serviceId);
+                const endM = timeToMinutes(a.time) + (s ? parseInt(s.duration) : 30);
+                if (nowMins > endM) hasPendingPast = true;
+            }
+        });
+        
+        // Show alert if there are pending appointments and the day is mostly over (e.g. after 18:00 or just any pending past)
+        if (hasPendingPast) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = "margin: 10px 20px; padding: 12px 16px; background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); border-radius: 8px; color: #e74c3c; font-size: 13px; display: flex; align-items: center; gap: 10px;";
+            alertDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size: 18px;"></i> <div><strong>Atenção:</strong> Você tem atendimentos finalizados hoje que ainda constam com pagamento pendente. Lembre-se de confirmar o recebimento!</div>';
+            document.querySelector('.calendar-container').prepend(alertDiv);
+        }
+    }
 }
 
 // Navigation helpers for agenda
@@ -961,6 +985,7 @@ function openNewAppointmentModal(profId = '', timeVal = '09:00') {
     document.getElementById('appt-id').value = '';
     document.getElementById('appt-date').value = getLocalDateString(currentSelectedDate);
     document.getElementById('appt-time').value = timeVal;
+    document.getElementById('appt-payment-value').value = '';
     
     if (profId) {
         document.getElementById('appt-prof-select').value = profId;
@@ -1035,6 +1060,10 @@ function openEditAppointment(apptId) {
     document.getElementById('appt-status').value = appt.status;
     document.getElementById('appt-payment').value = appt.paymentStatus;
     document.getElementById('appt-payment-method').value = appt.paymentMethod || 'pix';
+    
+    // Set payment value if it exists, otherwise leave empty (so it defaults to service price when saved)
+    document.getElementById('appt-payment-value').value = appt.price ? appt.price : '';
+    
     document.getElementById('appt-notes').value = appt.notes || '';
     
     // Show delete button
@@ -1057,10 +1086,17 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
     const paymentStatus = document.getElementById('appt-payment').value;
     const paymentMethod = document.getElementById('appt-payment-method').value;
     const notes = document.getElementById('appt-notes').value;
-
-    const newAppt = { id, clientId, serviceId, profId, date, time, status, paymentStatus, paymentMethod, notes };
     
     const selectedService = data.services.find(s => s.id === serviceId);
+    let price = document.getElementById('appt-payment-value').value;
+    if (!price || price.trim() === '') {
+        price = selectedService ? selectedService.price : 0;
+    } else {
+        price = parseFloat(price);
+    }
+
+    const newAppt = { id, clientId, serviceId, profId, date, time, status, paymentStatus, paymentMethod, price, notes };
+    
     const newStart = timeToMinutes(time);
     const newEnd = newStart + (selectedService?.duration || 30);
     
@@ -1142,7 +1178,7 @@ function triggerFinancialLogging(prev, current) {
     if (!wasPaid && isPaid) {
         const service = data.services.find(s => s.id === current.serviceId);
         const client = data.clients.find(c => c.id === current.clientId);
-        const price = service ? service.price : 50;
+        const price = current.price !== undefined ? current.price : (service ? service.price : 50);
         const desc = `${service ? service.name : 'Serviço'} - ${client ? client.name : 'Cliente'}`;
 
         const newTrans = {
@@ -2661,6 +2697,24 @@ function syncAppointmentMessages(appointment) {
         data.messageJobs.push({ id: `msg-${Date.now()}`, appointmentId: appointment.id, clientId: appointment.clientId, type: 'confirmation', scheduledAt, status: 'pending', text: `Confirme seu horário em ${formatDateStringToBR(appointment.date)} às ${appointment.time}.` });
     }
     saveData(STATE_KEYS.MESSAGE_JOBS, data.messageJobs);
+}
+function renderAppointmentStatusBadge(appt, serviceDuration) {
+    if (appt.paymentStatus === 'paid') {
+        return '<span class="comm-badge" style="background: rgba(46,204,113,0.2); color: #2ecc71;" title="Pago"><i class="fa-solid fa-sack-dollar"></i></span>';
+    }
+    
+    const todayStr = getLocalDateString(new Date());
+    if (appt.date < todayStr) {
+        return '<span class="comm-badge" style="background: rgba(231,76,60,0.2); color: #e74c3c;" title="Pagamento Atrasado"><i class="fa-solid fa-triangle-exclamation"></i></span>';
+    } else if (appt.date === todayStr) {
+        const endMins = timeToMinutes(appt.time) + (serviceDuration || 30);
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        if (nowMins > endMins) {
+            return '<span class="comm-badge" style="background: rgba(231,76,60,0.2); color: #e74c3c;" title="Pagamento Pendente"><i class="fa-solid fa-triangle-exclamation"></i></span>';
+        }
+    }
+    return '<span class="comm-badge" style="background: rgba(241,196,15,0.2); color: #f1c40f;" title="Agendado"><i class="fa-solid fa-clock"></i></span>';
 }
 
 function renderAppointmentCommunicationBadge(appointmentId) {
