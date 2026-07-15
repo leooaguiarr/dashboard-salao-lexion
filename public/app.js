@@ -949,6 +949,10 @@ agendaViewButtons.forEach(btn => {
 function openNewAppointmentModal(profId = '', timeVal = '09:00') {
     populateApptFormSelects();
     
+    document.getElementById('appt-create-fields').style.display = 'block';
+    document.getElementById('appt-create-fields-secondary').style.display = 'block';
+    document.getElementById('appt-readonly-summary').style.display = 'none';
+    
     document.getElementById('appointment-modal-title').innerText = 'Novo Agendamento';
     document.getElementById('appt-id').value = '';
     document.getElementById('appt-date').value = getLocalDateString(currentSelectedDate);
@@ -997,7 +1001,19 @@ function openEditAppointment(apptId) {
 
     populateApptFormSelects();
     
-    document.getElementById('appointment-modal-title').innerText = 'Editar Agendamento';
+    document.getElementById('appt-create-fields').style.display = 'none';
+    document.getElementById('appt-create-fields-secondary').style.display = 'none';
+    document.getElementById('appt-readonly-summary').style.display = 'block';
+    
+    const client = data.clients.find(c => c.id === appt.clientId);
+    const service = data.services.find(s => s.id === appt.serviceId);
+    const prof = data.professionals.find(p => p.id === appt.profId);
+    
+    document.getElementById('summary-client-name').innerText = client ? client.name : 'Cliente';
+    document.getElementById('summary-service-name').innerText = service ? service.name : 'Serviço';
+    document.getElementById('summary-prof-name').innerText = prof ? `Com ${prof.name.split(' ')[0]}` : 'Profissional';
+    
+    document.getElementById('appointment-modal-title').innerText = 'Agendamento';
     document.getElementById('appt-id').value = appt.id;
     document.getElementById('appt-client-select').value = appt.clientId;
     document.getElementById('appt-service-select').value = appt.serviceId;

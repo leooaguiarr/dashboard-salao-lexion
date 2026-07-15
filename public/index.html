@@ -755,31 +755,42 @@
             <form id="form-appointment">
                 <input type="hidden" id="appt-id">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="appt-client-select">Cliente</label>
-                        <div class="input-select-plus">
-                            <select id="appt-client-select" class="form-control" required>
-                                <!-- Populated dynamically -->
-                            </select>
-                            <button type="button" class="btn btn-secondary" id="btn-quick-add-client-from-appt" title="Cadastrar novo cliente">
-                                <i class="fa-solid fa-user-plus"></i>
-                            </button>
+                    <div id="appt-readonly-summary" style="display:none; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <h4 id="summary-client-name" style="margin: 0 0 8px 0; font-size: 18px; color: var(--text);"></h4>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <div style="font-size: 13px; color: var(--text-muted); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-scissors"></i> <span id="summary-service-name"></span></div>
+                            <div style="font-size: 13px; color: var(--text-muted); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-user-tie"></i> <span id="summary-prof-name"></span></div>
                         </div>
                     </div>
-                    <div class="form-row">
+
+                    <div id="appt-create-fields">
                         <div class="form-group">
-                            <label for="appt-service-select">Serviço</label>
-                            <select id="appt-service-select" class="form-control" required>
-                                <!-- Populated dynamically -->
-                            </select>
+                            <label for="appt-client-select">Cliente</label>
+                            <div class="input-select-plus">
+                                <select id="appt-client-select" class="form-control" required>
+                                    <!-- Populated dynamically -->
+                                </select>
+                                <button type="button" class="btn btn-secondary" id="btn-quick-add-client-from-appt" title="Cadastrar novo cliente">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="appt-prof-select">Profissional</label>
-                            <select id="appt-prof-select" class="form-control" required>
-                                <!-- Populated dynamically -->
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="appt-service-select">Serviço</label>
+                                <select id="appt-service-select" class="form-control" required>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="appt-prof-select">Profissional</label>
+                                <select id="appt-prof-select" class="form-control" required>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
                         </div>
                     </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="appt-date">Data</label>
@@ -792,6 +803,26 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="appt-payment">Pagamento Realizado?</label>
+                            <select id="appt-payment" class="form-control">
+                                <option value="pending">Não (Pendente)</option>
+                                <option value="paid">Sim (Pago)</option>
+                                <option value="free">Cortesia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="appt-payment-method">Modo de Pagamento</label>
+                            <select id="appt-payment-method" class="form-control">
+                                <option value="pix">Pix</option>
+                                <option value="credit_card">Cartão de Crédito</option>
+                                <option value="debit_card">Cartão de Débito</option>
+                                <option value="cash">Dinheiro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="appt-create-fields-secondary">
+                        <div class="form-group">
                             <label for="appt-status">Status Atendimento</label>
                             <select id="appt-status" class="form-control">
                                 <option value="scheduled">Agendado</option>
@@ -802,33 +833,16 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="appt-payment">Status Financeiro</label>
-                            <select id="appt-payment" class="form-control">
-                                <option value="pending">Pendente (Não Pago)</option>
-                                <option value="paid">Pago (Recebido)</option>
-                                <option value="free">Cortesia</option>
-                            </select>
+                            <label for="appt-notes">Observações</label>
+                            <textarea id="appt-notes" class="form-control" rows="2" placeholder="Observações do atendimento, restrições, etc."></textarea>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="appt-payment-method">Forma de Pagamento (se pago)</label>
-                        <select id="appt-payment-method" class="form-control">
-                            <option value="pix">Pix</option>
-                            <option value="credit_card">Cartão de Crédito</option>
-                            <option value="debit_card">Cartão de Débito</option>
-                            <option value="cash">Dinheiro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="appt-notes">Observações</label>
-                        <textarea id="appt-notes" class="form-control" rows="2" placeholder="Observações do atendimento, restrições, etc."></textarea>
-                    </div>
-                    <div class="appointment-communication" id="appointment-communication">
-                        <div class="communication-heading">
-                            <div><span class="eyebrow">Comunicação</span><strong>Lembretes deste horário</strong></div>
-                            <button type="button" class="btn btn-secondary btn-sm" id="btn-send-reminder-now"><i class="fa-solid fa-paper-plane"></i> Enviar agora</button>
+                        <div class="appointment-communication" id="appointment-communication">
+                            <div class="communication-heading">
+                                <div><span class="eyebrow">Comunicação</span><strong>Lembretes deste horário</strong></div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-send-reminder-now"><i class="fa-solid fa-paper-plane"></i> Enviar agora</button>
+                            </div>
+                            <div id="appointment-message-timeline" class="message-timeline-empty">Salve o agendamento para programar os lembretes.</div>
                         </div>
-                        <div id="appointment-message-timeline" class="message-timeline-empty">Salve o agendamento para programar os lembretes.</div>
                     </div>
                 </div>
                 <div class="modal-footer">
