@@ -953,6 +953,10 @@ function openNewAppointmentModal(profId = '', timeVal = '09:00') {
     document.getElementById('appt-create-fields-secondary').style.display = 'block';
     document.getElementById('appt-readonly-summary').style.display = 'none';
     
+    document.getElementById('appt-edit-actions').style.display = 'none';
+    document.getElementById('appt-edit-time-fields').style.display = 'block';
+    document.getElementById('appt-edit-payment-fields').style.display = 'block';
+    
     document.getElementById('appointment-modal-title').innerText = 'Novo Agendamento';
     document.getElementById('appt-id').value = '';
     document.getElementById('appt-date').value = getLocalDateString(currentSelectedDate);
@@ -1005,6 +1009,14 @@ function openEditAppointment(apptId) {
     document.getElementById('appt-create-fields-secondary').style.display = 'none';
     document.getElementById('appt-readonly-summary').style.display = 'block';
     
+    document.getElementById('appt-edit-actions').style.display = 'flex';
+    document.getElementById('appt-edit-time-fields').style.display = 'none';
+    document.getElementById('appt-edit-payment-fields').style.display = 'none';
+    
+    // Mostra os dois botões novamente caso tenham sido ocultados anteriormente
+    const actionBtns = document.querySelectorAll('#appt-edit-actions button');
+    actionBtns.forEach(btn => btn.style.display = 'flex');
+    
     const client = data.clients.find(c => c.id === appt.clientId);
     const service = data.services.find(s => s.id === appt.serviceId);
     const prof = data.professionals.find(p => p.id === appt.profId);
@@ -1051,18 +1063,33 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
     const selectedService = data.services.find(s => s.id === serviceId);
     const newStart = timeToMinutes(time);
     const newEnd = newStart + (selectedService?.duration || 30);
-    const conflict = data.appointments.find(a => {
-        if (a.profId !== profId || a.date !== date || a.id === id || a.status === 'cancelled') return false;
-        const existingService = data.services.find(s => s.id === a.serviceId);
-        const existingStart = timeToMinutes(a.time);
-        const existingEnd = existingStart + (existingService?.duration || 30);
-        return newStart < existingEnd && newEnd > existingStart;
-    });
     
-    if (conflict) {
-        const otherClient = data.clients.find(c => c.id === conflict.clientId) || {name: 'Outro'};
-        showToast(`Conflito: o horário sobrepõe o atendimento de ${otherClient.name}.`, 'danger');
-        return;
+    let isTimeChanged = true;
+    if (id) {
+        const originalAppt = data.appointments.find(a => a.id === id);
+        if (originalAppt && 
+            originalAppt.date === date && 
+            originalAppt.time === time && 
+            originalAppt.serviceId === serviceId && 
+            originalAppt.profId === profId) {
+            isTimeChanged = false;
+        }
+    }
+    
+    if (isTimeChanged) {
+        const conflict = data.appointments.find(a => {
+            if (a.profId !== profId || a.date !== date || a.id === id || a.status === 'cancelled') return false;
+            const existingService = data.services.find(s => s.id === a.serviceId);
+            const existingStart = timeToMinutes(a.time);
+            const existingEnd = existingStart + (existingService?.duration || 30);
+            return newStart < existingEnd && newEnd > existingStart;
+        });
+        
+        if (conflict) {
+            const otherClient = data.clients.find(c => c.id === conflict.clientId) || {name: 'Outro'};
+            showToast(`Conflito: o horário sobrepõe o atendimento de ${otherClient.name}.`, 'danger');
+            return;
+        }
     }
 
     if (id) {

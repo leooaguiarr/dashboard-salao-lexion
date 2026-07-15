@@ -791,33 +791,43 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="appt-date">Data</label>
-                            <input type="date" id="appt-date" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="appt-time">Horário</label>
-                            <input type="time" id="appt-time" class="form-control" required>
+                    <div id="appt-edit-actions" style="display:none; gap:10px; margin-bottom: 20px;">
+                        <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="document.getElementById('appt-edit-payment-fields').style.display='block'; this.style.display='none';"><i class="fa-solid fa-sack-dollar"></i> Pagamento</button>
+                        <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="document.getElementById('appt-edit-time-fields').style.display='block'; this.style.display='none';"><i class="fa-regular fa-clock"></i> Horário</button>
+                    </div>
+
+                    <div id="appt-edit-time-fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="appt-date">Data</label>
+                                <input type="date" id="appt-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="appt-time">Horário</label>
+                                <input type="time" id="appt-time" class="form-control" required>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="appt-payment">Pagamento Realizado?</label>
-                            <select id="appt-payment" class="form-control">
-                                <option value="pending">Não (Pendente)</option>
-                                <option value="paid">Sim (Pago)</option>
-                                <option value="free">Cortesia</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="appt-payment-method">Modo de Pagamento</label>
-                            <select id="appt-payment-method" class="form-control">
-                                <option value="pix">Pix</option>
-                                <option value="credit_card">Cartão de Crédito</option>
-                                <option value="debit_card">Cartão de Débito</option>
-                                <option value="cash">Dinheiro</option>
-                            </select>
+
+                    <div id="appt-edit-payment-fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="appt-payment">Pagamento Realizado?</label>
+                                <select id="appt-payment" class="form-control">
+                                    <option value="pending">Não (Pendente)</option>
+                                    <option value="paid">Sim (Pago)</option>
+                                    <option value="free">Cortesia</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="appt-payment-method">Modo de Pagamento</label>
+                                <select id="appt-payment-method" class="form-control">
+                                    <option value="pix">Pix</option>
+                                    <option value="credit_card">Cartão de Crédito</option>
+                                    <option value="debit_card">Cartão de Débito</option>
+                                    <option value="cash">Dinheiro</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
