@@ -1095,7 +1095,7 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
         price = parseFloat(price);
     }
 
-    const newAppt = { id, clientId, serviceId, profId, date, time, status, paymentStatus, paymentMethod, price, notes };
+    const newAppt = { id, clientId, serviceId, profId, date, time, status, paymentStatus, paymentMethod, notes };
     
     const newStart = timeToMinutes(time);
     const newEnd = newStart + (selectedService?.duration || 30);
@@ -1138,7 +1138,7 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
         showToast("Agendamento atualizado com sucesso!", "success");
 
         // Financial automatic trigger
-        triggerFinancialLogging(prevAppt, newAppt);
+        triggerFinancialLogging(prevAppt, newAppt, price);
     } else {
         // Create
         newAppt.id = 'appt-' + Date.now();
@@ -1146,7 +1146,7 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
         showToast("Horário agendado com sucesso!", "success");
         
         // Trigger finance if logged as completed directly
-        triggerFinancialLogging(null, newAppt);
+        triggerFinancialLogging(null, newAppt, price);
     }
 
     // Save
@@ -1170,15 +1170,15 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
 });
 
 // Auto Financial Record Sync
-function triggerFinancialLogging(prev, current) {
-    // If status changed to 'done' and paymentStatus changed to 'paid' (or created as such), log as transaction
-    const wasPaid = prev ? (prev.status === 'done' && prev.paymentStatus === 'paid') : false;
-    const isPaid = (current.status === 'done' && current.paymentStatus === 'paid');
+function triggerFinancialLogging(prev, current, manualPrice) {
+    // If paymentStatus changed to 'paid' (or created as such), log as transaction
+    const wasPaid = prev ? (prev.paymentStatus === 'paid') : false;
+    const isPaid = (current.paymentStatus === 'paid');
 
     if (!wasPaid && isPaid) {
         const service = data.services.find(s => s.id === current.serviceId);
         const client = data.clients.find(c => c.id === current.clientId);
-        const price = current.price !== undefined ? current.price : (service ? service.price : 50);
+        const price = manualPrice !== undefined ? manualPrice : (service ? service.price : 50);
         const desc = `${service ? service.name : 'Serviço'} - ${client ? client.name : 'Cliente'}`;
 
         const newTrans = {
