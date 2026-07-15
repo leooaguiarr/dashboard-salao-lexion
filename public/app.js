@@ -2097,7 +2097,7 @@ function renderPhoneScreen() {
                 <form class="pub-form" onsubmit="submitSimNamePhone(event)">
                     <div class="form-group">
                         <label style="color:#94a3b8; font-size:10px;">SEU NOME COMPLETO:</label>
-                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Ex: Rogério Ceni" required value="${escapeHTML(simSelection.clientName)}">
+                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Nome" required value="${escapeHTML(simSelection.clientName)}">
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
@@ -2148,6 +2148,10 @@ function renderPhoneScreen() {
         const testDate = simSelection.date || getLocalDateString(currentSelectedDate);
         
         if (assignedProf) {
+            const now = new Date();
+            const todayStr = getLocalDateString(now);
+            const minTimeMinutes = now.getHours() * 60 + now.getMinutes() + 120; // 2 horas de antecedência
+
             // Generate slots
             for (let hour = 9; hour < 19; hour++) {
                 ['00', '30'].forEach(min => {
@@ -2160,7 +2164,15 @@ function renderPhoneScreen() {
                         a.status !== 'cancelled'
                     );
                     
-                    availableSlots.push({ time: slotTime, available: !hasConflict });
+                    let isAvailable = !hasConflict;
+                    if (testDate === todayStr) {
+                        const slotMinutes = hour * 60 + parseInt(min, 10);
+                        if (slotMinutes < minTimeMinutes) {
+                            isAvailable = false;
+                        }
+                    }
+                    
+                    availableSlots.push({ time: slotTime, available: isAvailable });
                 });
             }
         }
