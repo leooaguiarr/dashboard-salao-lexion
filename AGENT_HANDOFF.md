@@ -8,7 +8,17 @@
 
 ## 📅 Últimas Modificações (Sessão de Hoje)
 
-1. **Lógica de Agendamento (Google Calendar Style):**
+1. **Criação da Proposta Comercial:**
+   - Foi criado o arquivo `docs/proposta_comercial_lexion.html` contendo uma apresentação comercial premium e responsiva.
+   - Definidos os preços com base na concorrência (Trinks, Avec): R$ 497 implantação + R$ 99/mês.
+   - O documento resume funcionalidades, métricas e um comparativo de mercado.
+
+2. **Correção de Cálculo de Receita e Gasto do Cliente:**
+   - Na renderização da aba **Clientes**, o `totalSpent` foi corrigido para somar o valor dos serviços com base em agendamentos que têm `paymentStatus === 'paid'`, ignorando o `status === 'done'`. Isso permite que valores pagos antecipadamente entrem na conta.
+   - Na aba **Financeiro**, o gráfico de `Faturamento por Serviço` também foi ajustado para somar apenas com base em `paymentStatus === 'paid'`.
+   - Adicionada a porcentagem de representatividade no label de cada serviço no gráfico da aba financeira (ex: `Corte Degradê (40%)`), seguindo o padrão de "Métodos de Pagamento".
+
+3. **Lógica de Agendamento (Google Calendar Style):**
    - Refatoração na `renderAgenda` (`app.js`) para suportar sobreposição de horários reais.
    - Quando dois atendimentos colidem no tempo (baseado na duração do serviço), o sistema os agrupa no mesmo `cluster` e divide a largura (`width`) entre eles, renderizando-os **lado a lado** ao invés de um em cima do outro.
 

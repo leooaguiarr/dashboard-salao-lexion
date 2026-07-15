@@ -1260,7 +1260,7 @@ function renderClients() {
         const isSumido = daysSinceLast ? (daysSinceLast > cli.frequency) : false;
         
         // Calculate total spent
-        const clientAppts = data.appointments.filter(a => a.clientId === cli.id && a.status === 'done' && a.paymentStatus === 'paid');
+        const clientAppts = data.appointments.filter(a => a.clientId === cli.id && a.paymentStatus === 'paid');
         let totalSpent = 0;
         clientAppts.forEach(a => {
             const srv = data.services.find(s => s.id === a.serviceId);
@@ -1681,14 +1681,16 @@ function renderServiceRevenueChart() {
 
     // Calculate revenue per service
     let serviceRevenue = {};
+    let totalServiceRevenue = 0;
     data.services.forEach(s => {
         serviceRevenue[s.name] = 0;
     });
 
-    data.appointments.filter(a => a.status === 'done' && a.paymentStatus === 'paid').forEach(a => {
+    data.appointments.filter(a => a.paymentStatus === 'paid').forEach(a => {
         const srv = data.services.find(s => s.id === a.serviceId);
         if (srv) {
             serviceRevenue[srv.name] += srv.price;
+            totalServiceRevenue += srv.price;
         }
     });
 
@@ -1699,7 +1701,8 @@ function renderServiceRevenueChart() {
     const sortedServices = Object.entries(serviceRevenue).sort((a,b) => b[1] - a[1]);
 
     sortedServices.forEach(([name, val], index) => {
-        const pct = Math.round((val / maxVal) * 100);
+        const widthPct = Math.round((val / maxVal) * 100);
+        const pct = totalServiceRevenue > 0 ? Math.round((val / totalServiceRevenue) * 100) : 0;
         // Colors gradient index-based
         const colors = ['var(--primary)', 'var(--info)', '#6366f1', 'var(--warning)', 'var(--success)'];
         const barColor = colors[index % colors.length];
@@ -1708,11 +1711,11 @@ function renderServiceRevenueChart() {
         row.className = 'chart-bar-row';
         row.innerHTML = `
             <div class="chart-bar-labels">
-                <span>${name}</span>
+                <span>${name} (${pct}%)</span>
                 <strong>${formatCurrency(val)}</strong>
             </div>
             <div class="chart-bar-bg">
-                <div class="chart-bar-fill" style="width: ${pct}%; background-color: ${barColor};"></div>
+                <div class="chart-bar-fill" style="width: ${widthPct}%; background-color: ${barColor};"></div>
             </div>
         `;
         chartBox.appendChild(row);
