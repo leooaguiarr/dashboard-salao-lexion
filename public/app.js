@@ -577,6 +577,7 @@ function renderDashboard() {
     
     // Get all future appointments starting from NOW
     let allUpcoming = data.appointments.filter(appt => {
+        if (appt.status === 'cancelled' || appt.status === 'done' || appt.status === 'no_show') return false;
         if (appt.date < realTodayStr) return false;
         
         // se for hoje, verifica se já passou do horário de fim
@@ -1231,10 +1232,15 @@ document.getElementById('btn-delete-appointment').addEventListener('click', () =
         if (idx !== -1) {
             data.appointments[idx].status = 'cancelled';
             saveData(STATE_KEYS.APPOINTMENTS, data.appointments);
+            syncAppointmentMessages(data.appointments[idx]);
             showToast("Agendamento cancelado.", "warning");
         }
         closeModal('modal-appointment');
-        renderAgenda();
+        
+        // Re-render the active page to keep the UI in sync (especially if deleted from dashboard)
+        const activeMenuItem = document.querySelector('.menu-item.active');
+        const target = activeMenuItem ? activeMenuItem.getAttribute('data-target') : 'agenda';
+        renderPageData(target);
     }
 });
 
