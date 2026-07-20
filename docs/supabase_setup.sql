@@ -97,6 +97,7 @@ CREATE TABLE transactions (
     description TEXT,
     category TEXT,
     "paymentMethod" TEXT,
+    "profId" TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
