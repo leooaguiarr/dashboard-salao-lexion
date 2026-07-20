@@ -1732,6 +1732,9 @@ document.getElementById('btn-delete-lead').addEventListener('click', () => {
     if (id) {
         data.leads = data.leads.filter(l => l.id !== id);
         saveData(STATE_KEYS.LEADS, data.leads);
+        if (typeof DataService !== 'undefined' && DataService.deleteItem) {
+            DataService.deleteItem('leads', id).catch(console.error);
+        }
         showToast("Lead excluído.", "warning");
         closeModal('modal-lead');
         renderLeadsKanban();
@@ -2223,6 +2226,9 @@ document.getElementById('btn-delete-service').addEventListener('click', () => {
     if (id) {
         data.services = data.services.filter(s => s.id !== id);
         saveData(STATE_KEYS.SERVICES, data.services);
+        if (typeof DataService !== 'undefined' && DataService.deleteItem) {
+            DataService.deleteItem('services', id).catch(console.error);
+        }
         showToast("Serviço excluído.", "warning");
         closeModal('modal-service');
         renderConfig();
@@ -2277,6 +2283,9 @@ document.getElementById('btn-delete-professional').addEventListener('click', () 
     if (id) {
         data.professionals = data.professionals.filter(p => p.id !== id);
         saveData(STATE_KEYS.PROFESSIONALS, data.professionals);
+        if (typeof DataService !== 'undefined' && DataService.deleteItem) {
+            DataService.deleteItem('professionals', id).catch(console.error);
+        }
         showToast("Profissional excluído.", "warning");
         closeModal('modal-professional');
         renderConfig();
