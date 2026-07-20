@@ -609,6 +609,36 @@ body {
 .atendimento-card.status-no_show { border-left-color: var(--danger); }
 .atendimento-card.status-cancelled { border-left-color: var(--gray); }
 
+.atendimento-card.is-hoje {
+    background-color: var(--primary-light);
+    border-right: 2px solid var(--primary);
+}
+
+.atendimento-card.is-futuro {
+    background-color: var(--bg-secondary);
+}
+
+.dash-agenda-legend {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
 .appt-time-box {
     display: flex;
     flex-direction: column;

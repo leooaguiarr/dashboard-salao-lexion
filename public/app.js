@@ -625,8 +625,9 @@ function renderDashboard() {
                 dateLabel = `<span style="font-size: 11px; color: var(--primary-light); font-weight: 700; display: block; margin-top: 4px; letter-spacing: 0.5px;">${dd}/${mm}</span>`;
             }
 
+            const dayClass = (appt.date === realTodayStr) ? 'is-hoje' : 'is-futuro';
             const card = document.createElement('div');
-            card.className = `atendimento-card status-${appt.status}`;
+            card.className = `atendimento-card status-${appt.status} ${dayClass}`;
             card.innerHTML = `
                 <div class="appt-time-box">
                     <span class="appt-time">${appt.time}</span>
