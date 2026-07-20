@@ -1216,7 +1216,8 @@ function triggerFinancialLogging(prev, current, manualPrice) {
             date: current.date,
             description: desc,
             category: 'Serviço',
-            paymentMethod: current.paymentMethod || 'pix'
+            paymentMethod: current.paymentMethod || 'pix',
+            profId: current.profId || ''
         };
         data.transactions.push(newTrans);
         saveData(STATE_KEYS.TRANSACTIONS, data.transactions);
@@ -1641,12 +1642,41 @@ document.getElementById('btn-delete-lead').addEventListener('click', () => {
 });
 
 // --- 5. FINANCE COMPONENT ---
+let currentFinanceProfId = 'all';
+
+function setFinanceProfFilter(profId) {
+    currentFinanceProfId = profId;
+    renderFinance();
+}
+
 function renderFinance() {
+    const profFiltersContainer = document.getElementById('finance-prof-filters');
+    if (profFiltersContainer) {
+        profFiltersContainer.innerHTML = '';
+        const btnGeral = document.createElement('button');
+        btnGeral.className = `btn ${currentFinanceProfId === 'all' ? 'btn-primary' : 'btn-secondary'}`;
+        btnGeral.innerText = 'Geral (Todos)';
+        btnGeral.onclick = () => setFinanceProfFilter('all');
+        profFiltersContainer.appendChild(btnGeral);
+
+        data.professionals.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = `btn ${currentFinanceProfId === p.id ? 'btn-primary' : 'btn-secondary'}`;
+            btn.innerText = p.name;
+            btn.onclick = () => setFinanceProfFilter(p.id);
+            profFiltersContainer.appendChild(btn);
+        });
+    }
+
+    const filteredTransactions = currentFinanceProfId === 'all' 
+        ? data.transactions 
+        : data.transactions.filter(t => t.profId === currentFinanceProfId);
+
     // 1. Calculate values
     let totalIn = 0;
     let totalOut = 0;
     
-    data.transactions.forEach(t => {
+    filteredTransactions.forEach(t => {
         if (t.type === 'income') totalIn += t.amount;
         else totalOut += t.amount;
     });
@@ -1681,17 +1711,19 @@ function renderFinance() {
     tbody.innerHTML = '';
 
     // Sort transactions by date descending
-    const sortedTrans = [...data.transactions].sort((a,b) => b.date.localeCompare(a.date));
+    const sortedTrans = [...filteredTransactions].sort((a,b) => b.date.localeCompare(a.date));
 
     sortedTrans.forEach(t => {
         const tr = document.createElement('tr');
         const sign = t.type === 'income' ? '+' : '-';
         const cssClass = t.type === 'income' ? 'text-success' : 'text-danger';
         
+        const profName = t.profId ? (data.professionals.find(p => p.id === t.profId)?.name || 'Desconhecido') : 'Barbearia (Geral)';
         tr.innerHTML = `
             <td data-label="Data">${formatDateStringToBR(t.date)}</td>
             <td data-label="Tipo"><span class="status-badge ${t.type === 'income' ? 'done' : 'no_show'}">${t.type === 'income' ? 'Entrada' : 'Saída'}</span></td>
             <td data-label="Descrição">${t.description}</td>
+            <td data-label="Profissional">${profName}</td>
             <td data-label="Categoria">${t.category}</td>
             <td data-label="Forma de Pagto">${t.paymentMethod.toUpperCase()}</td>
             <td data-label="Valor" class="${cssClass}" style="font-weight: 700;">${sign} ${formatCurrency(t.amount)}</td>
@@ -1835,6 +1867,18 @@ function openTransactionModal(type) {
     }
 
     document.getElementById('trans-date').value = getLocalDateString(currentSelectedDate);
+    
+    const profSelect = document.getElementById('trans-profId');
+    if (profSelect) {
+        profSelect.innerHTML = '<option value="">Barbearia (Geral)</option>';
+        data.professionals.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.innerText = p.name;
+            profSelect.appendChild(opt);
+        });
+    }
+
     openModal('modal-transaction');
 }
 
@@ -1846,10 +1890,11 @@ document.getElementById('form-transaction').addEventListener('submit', (e) => {
     const description = document.getElementById('trans-description').value;
     const category = document.getElementById('trans-category').value;
     const paymentMethod = document.getElementById('trans-method').value;
+    const profId = document.getElementById('trans-profId') ? document.getElementById('trans-profId').value : '';
 
     const newTrans = {
         id: 'tr-' + Date.now(),
-        type, amount, date, description, category, paymentMethod
+        type, amount, date, description, category, paymentMethod, profId
     };
 
     data.transactions.push(newTrans);

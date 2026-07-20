@@ -478,6 +478,9 @@
 
                 <!-- 5. FINANCEIRO PAGE -->
                 <section class="page-section" id="page-financeiro">
+                    <div class="prof-filters" id="finance-prof-filters" style="margin-bottom: 20px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                        <!-- Buttons populated dynamically -->
+                    </div>
                     <!-- Finance Stats Summary -->
                     <div class="metrics-grid">
                         <div class="metric-card glass-effect">
@@ -537,6 +540,7 @@
                                                 <th>Data</th>
                                                 <th>Tipo</th>
                                                 <th>Descrição</th>
+                                                <th>Profissional</th>
                                                 <th>Categoria</th>
                                                 <th>Forma de Pagto</th>
                                                 <th>Valor</th>
@@ -1014,6 +1018,13 @@
                     <div class="form-group">
                         <label for="trans-description">Descrição</label>
                         <input type="text" id="trans-description" class="form-control" placeholder="Ex: Compra de Shampoos / Corte João" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trans-profId">Profissional (Opcional)</label>
+                        <select id="trans-profId" class="form-control">
+                            <option value="">Barbearia (Geral)</option>
+                            <!-- Options populated dynamically -->
+                        </select>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
