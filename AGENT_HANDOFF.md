@@ -84,6 +84,32 @@
 
 ---
 
+## 🚀 Atualizações Recentes (Última Sessão)
+
+16. **Correção de Lógica de Cortesia e UX do Modal:**
+    - Atualizado o sistema para identificar corretamente pagamentos "Cortesia" (`free`), registrando a transação com valor R$ 0,00 na aba Financeiro para manter o histórico preciso.
+    - Adicionado script para zerar automaticamente o input de valor e bloqueá-lo quando a opção Cortesia é selecionada na edição do agendamento.
+    - Títulos e textos dos botões no modal de edição foram dinamizados para diferenciar entre "Agendamento" (quando apenas criando/editando) e "Confirmar Pagamento / Salvar Pagamento" (quando confirmando pelo dashboard).
+
+17. **Cálculo de Métricas de Clientes:**
+    - Ajustada a função `calculateClientStats` para contar como visita os agendamentos que estão com status de pagamento `paid` ou `free`, mesmo que o status do agendamento não tenha sido trocado para `done`. Isso evita que métricas do cliente fiquem zeradas caso o profissional esqueça de concluir o agendamento após o pagamento.
+
+18. **Sincronização de Exclusão no Supabase:**
+    - Detectado e corrigido um bug onde a exclusão de Profissionais, Serviços e Leads apenas removia do array local, mas não enviava o comando de deleção para a nuvem (fazendo-os voltar após o refresh).
+    - Adicionada a chamada para `DataService.deleteItem()` nos respectivos gatilhos de exclusão.
+
+19. **Deleção de Clientes:**
+    - Implementado um botão de "Excluir" no modal de Edição de Clientes (oculto durante novos cadastros), contendo aviso de confirmação e sincronização direta com a nuvem.
+
+20. **Otimização Completa para Celulares e Tablets:**
+    - Todo o CSS para telas móveis (`@media max-width: 768px`) foi revisado.
+    - Os cartões de "Próximos Atendimentos" foram reescritos para usar `flex-wrap`, expandindo verticalmente para evitar sobreposição de textos longos e de valores (R$).
+    - O botão de edição (lápis) agora fica permanentemente visível nos dispositivos móveis (já que o "hover" não existe) alinhado à direita.
+    - Ajustados os botões de ação do CRM para ocuparem a largura total (`width: 100%`) facilitando o toque na tela.
+    - Um backup local das regras css antigas foi guardado em `backup_mobile_opt`.
+
+---
+
 ## 🛠 Arquitetura e Restrições Atuais
 
 - **Banco de Dados (Supabase):** Toda vez que um objeto é injetado localmente (`data.appointments`, `data.transactions`), a função `saveData()` o sincroniza com o backend. **Atenção extrema ao Schema:** Não adicione chaves novas (ex: `price` num agendamento) se você não tiver certeza de que a coluna existe no banco (Supabase), pois o RLS e o PostgREST irão rejeitar a query.
