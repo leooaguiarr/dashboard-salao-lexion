@@ -611,19 +611,30 @@ function renderDashboard() {
             </div>
         `;
     } else {
-        // Sort appointments by hour
-        upcomingAppts.sort((a,b) => a.time.localeCompare(b.time));
-
         upcomingAppts.forEach(appt => {
             const client = data.clients.find(c => c.id === appt.clientId) || { name: 'Cliente Desconhecido', phone: '' };
             const service = data.services.find(s => s.id === appt.serviceId) || { name: 'Serviço Desconhecido', price: 0, duration: 30 };
             const professional = data.professionals.find(p => p.id === appt.profId) || { name: 'Profissional' };
             
             let dateLabel = '';
-            if (appt.date !== realTodayStr) {
-                const [yyyy, mm, dd] = appt.date.split('-');
-                dateLabel = `<span style="font-size: 11px; color: var(--primary-light); font-weight: 700; display: block; margin-top: 4px; letter-spacing: 0.5px;">${dd}/${mm}</span>`;
+            const [yyyy, mm, dd] = appt.date.split('-');
+            
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+            const tomorrowStr = getLocalDateString(tomorrowDate);
+            
+            let dateText = `${dd}/${mm}`;
+            let colorVar = "var(--text-muted)";
+            
+            if (appt.date === realTodayStr) {
+                dateText = "Hoje";
+                colorVar = "var(--primary)";
+            } else if (appt.date === tomorrowStr) {
+                dateText = "Amanhã";
+                colorVar = "var(--info)";
             }
+            
+            dateLabel = `<span style="font-size: 11px; color: ${colorVar}; font-weight: 800; display: block; margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase;">${dateText}</span>`;
 
             const dayClass = (appt.date === realTodayStr) ? 'is-hoje' : 'is-futuro';
             const card = document.createElement('div');
