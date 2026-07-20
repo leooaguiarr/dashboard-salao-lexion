@@ -23,6 +23,7 @@ CREATE TABLE business_info (
     instagram TEXT,
     address TEXT,
     hours JSONB,
+    "whatsappRecallMessage" TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
