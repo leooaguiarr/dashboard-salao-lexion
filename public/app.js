@@ -3072,6 +3072,34 @@ window.addEventListener('DOMContentLoaded', async () => {
         initMockDatabase();
     }
     await loadData();
+    
+    // --- MIGRATION: Backfill profId in old transactions ---
+    let transactionsMigrated = false;
+    data.transactions.forEach(t => {
+        if (!t.profId && t.type === 'income' && t.category === 'Serviço' && t.description) {
+            // Attempt to find the matching appointment
+            const matchingAppt = data.appointments.find(a => {
+                if (a.date !== t.date) return false;
+                const service = data.services.find(s => s.id === a.serviceId);
+                const client = data.clients.find(c => c.id === a.clientId);
+                if (service && client) {
+                    const expectedDesc = `${service.name} - ${client.name}`;
+                    // Allow slight mismatches or exact matches
+                    return t.description === expectedDesc;
+                }
+                return false;
+            });
+            if (matchingAppt && matchingAppt.profId) {
+                t.profId = matchingAppt.profId;
+                transactionsMigrated = true;
+            }
+        }
+    });
+    if (transactionsMigrated) {
+        saveData('transactions', data.transactions);
+    }
+    // --- END MIGRATION ---
+
     updateUserProfileUI(); // reflete o nome do salão vindo da nuvem
     initNavigation();
     initModals();
