@@ -701,7 +701,7 @@ function renderDashboard() {
         const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
         const pendingAppts = data.appointments.filter(appt => {
-            if (appt.paymentStatus === 'paid') return false;
+            if (appt.paymentStatus === 'paid' || appt.paymentStatus === 'free') return false;
             if (appt.status === 'cancelled' || appt.status === 'no_show') return false;
             
             // Time has passed?
