@@ -2994,8 +2994,12 @@ window.retryMessage = function(id) {
 
 function calculateClientStats(clientId) {
     const appointments = data.appointments.filter(a => a.clientId === clientId && a.status !== 'cancelled').sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
-    const completed = appointments.filter(a => a.status === 'done');
-    const spent = completed.reduce((sum, a) => sum + (data.services.find(s => s.id === a.serviceId)?.price || 0), 0);
+    const completed = appointments.filter(a => a.status === 'done' || a.paymentStatus === 'paid' || a.paymentStatus === 'free');
+    const spent = completed.reduce((sum, a) => {
+        if (a.paymentStatus === 'free') return sum;
+        const price = a.price !== undefined ? parseFloat(a.price) : (data.services.find(s => s.id === a.serviceId)?.price || 0);
+        return sum + price;
+    }, 0);
     const intervals = completed.slice(0, -1).map((a, index) => daysBetween(completed[index + 1].date, a.date));
     const averageFrequency = intervals.length ? Math.round(intervals.reduce((sum, value) => sum + value, 0) / intervals.length) : null;
     return { appointments, completed, spent, averageFrequency, noShows: appointments.filter(a => a.status === 'no_show').length };
