@@ -1447,6 +1447,8 @@ document.getElementById('select-filter-clients-status').addEventListener('change
 document.getElementById('btn-add-client').addEventListener('click', () => {
     document.getElementById('client-modal-title').innerText = 'Cadastrar Cliente';
     document.getElementById('client-id').value = '';
+    const btnDelete = document.getElementById('btn-delete-client');
+    if (btnDelete) btnDelete.style.display = 'none';
     openModal('modal-client');
 });
 
@@ -1463,8 +1465,30 @@ function openEditClient(id) {
     document.getElementById('client-frequency').value = cli.frequency;
     document.getElementById('client-notes').value = cli.notes || '';
 
+    const btnDelete = document.getElementById('btn-delete-client');
+    if (btnDelete) btnDelete.style.display = 'block';
+
     openModal('modal-client');
 }
+
+// Client Delete trigger
+document.getElementById('btn-delete-client')?.addEventListener('click', () => {
+    const id = document.getElementById('client-id').value;
+    if (id) {
+        if (confirm('Tem certeza que deseja excluir este cliente? Essa ação não pode ser desfeita.')) {
+            data.clients = data.clients.filter(c => c.id !== id);
+            saveData(STATE_KEYS.CLIENTS, data.clients);
+            if (typeof DataService !== 'undefined' && DataService.deleteItem) {
+                DataService.deleteItem('clients', id).catch(console.error);
+            }
+            showToast("Cliente excluído com sucesso.", "warning");
+            closeModal('modal-client');
+            
+            const activePage = document.querySelector('.menu-item.active').getAttribute('data-target');
+            renderPageData(activePage);
+        }
+    }
+});
 
 // Client Form submit
 document.getElementById('form-client').addEventListener('submit', (e) => {
