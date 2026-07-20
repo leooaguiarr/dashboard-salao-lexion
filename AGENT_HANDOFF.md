@@ -76,6 +76,12 @@
     - O cadastro manual de entrada/saída financeira agora possui um campo opcional para vincular o valor a um profissional.
     - O gatilho de pagamento na agenda (ao marcar como pago) salva automaticamente o `profId` na transação financeira gerada.
 
+15. **Dashboard - UI e Ordenação de Próximos Atendimentos:**
+    - Corrigido o bug onde a lista de "Próximos Atendimentos" ignorava o dia e ordenava apenas pela hora.
+    - O texto estático "Hoje" no topo foi trocado por uma legenda de cores (Hoje / Futuro).
+    - Os cards de atendimento da home ganharam indicativos visuais (`is-hoje`, `is-futuro`) de fundo e borda para facilitar a identificação do dia.
+    - O texto que exibe a data no card foi aprimorado para mostrar explicitamente "HOJE" ou "AMANHÃ", além do tradicional "DD/MM".
+
 ---
 
 ## 🛠 Arquitetura e Restrições Atuais
