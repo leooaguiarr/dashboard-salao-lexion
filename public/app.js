@@ -730,7 +730,7 @@ function renderDashboard() {
                         <strong>${client.name}</strong>
                         <span class="crm-alert-subtext">${appt.date === currentStr ? 'Hoje' : appt.date.split('-').reverse().join('/')} às ${appt.time} - Falta lançar ${formatCurrency(service.price)}</span>
                     </div>
-                    <button class="btn btn-warning btn-sm" onclick="openEditAppointment('${appt.id}')">
+                    <button class="btn btn-warning btn-sm" onclick="openEditAppointment('${appt.id}', 'pay')">
                         Confirmar
                     </button>
                 `;
@@ -1112,9 +1112,19 @@ function populateApptFormSelects() {
     });
 }
 
-function openEditAppointment(apptId) {
+function openEditAppointment(apptId, mode = 'edit') {
     const appt = data.appointments.find(a => a.id === apptId);
     if (!appt) return;
+
+    const modalTitle = document.getElementById('appointment-modal-title');
+    const saveBtn = document.getElementById('btn-save-appointment');
+    if (mode === 'pay') {
+        if (modalTitle) modalTitle.innerText = "Confirmar Pagamento";
+        if (saveBtn) saveBtn.innerText = "Salvar Pagamento";
+    } else {
+        if (modalTitle) modalTitle.innerText = "Agendamento";
+        if (saveBtn) saveBtn.innerText = "Salvar Agendamento";
+    }
 
     populateApptFormSelects();
     
@@ -1259,15 +1269,19 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
 
 // Auto Financial Record Sync
 function triggerFinancialLogging(prev, current, manualPrice) {
-    // If paymentStatus changed to 'paid' (or created as such), log as transaction
-    const wasPaid = prev ? (prev.paymentStatus === 'paid') : false;
-    const isPaid = (current.paymentStatus === 'paid');
+    // If paymentStatus changed to 'paid' or 'cortesia' (or created as such), log as transaction
+    const wasPaid = prev ? (prev.paymentStatus === 'paid' || prev.paymentStatus === 'cortesia') : false;
+    const isPaid = (current.paymentStatus === 'paid' || current.paymentStatus === 'cortesia');
 
     if (!wasPaid && isPaid) {
         const service = data.services.find(s => s.id === current.serviceId);
         const client = data.clients.find(c => c.id === current.clientId);
-        const price = manualPrice !== undefined ? manualPrice : (service ? service.price : 50);
-        const desc = `${service ? service.name : 'Serviço'} - ${client ? client.name : 'Cliente'}`;
+        
+        let price = manualPrice !== undefined ? manualPrice : (service ? service.price : 50);
+        if (current.paymentStatus === 'cortesia') price = 0;
+        
+        const isCortesia = current.paymentStatus === 'cortesia';
+        const desc = `${service ? service.name : 'Serviço'}${isCortesia ? ' (Cortesia)' : ''} - ${client ? client.name : 'Cliente'}`;
 
         const newTrans = {
             id: 'tr-' + Date.now(),
@@ -1276,12 +1290,16 @@ function triggerFinancialLogging(prev, current, manualPrice) {
             date: current.date,
             description: desc,
             category: 'Serviço',
-            paymentMethod: current.paymentMethod || 'pix',
+            paymentMethod: isCortesia ? 'Cortesia' : (current.paymentMethod || 'pix'),
             profId: current.profId || ''
         };
         data.transactions.push(newTrans);
         saveData(STATE_KEYS.TRANSACTIONS, data.transactions);
-        showToast(`Rendimento de ${formatCurrency(price)} registrado nas finanças!`, 'success');
+        if (isCortesia) {
+            showToast(`Cortesia registrada nas finanças!`, 'info');
+        } else {
+            showToast(`Rendimento de ${formatCurrency(price)} registrado nas finanças!`, 'success');
+        }
     }
 }
 
