@@ -69,6 +69,13 @@
 13. **Alerta Fim de Dia:**
     - Se o usuário acessar a agenda no dia atual e houver atendimentos encerrados sem registro de pagamento, um banner de alerta vermelho é renderizado no topo do calendário.
 
+
+14. **Filtro de Faturamento por Profissional:**
+    - Adicionado suporte a rastreamento de receitas e despesas por profissional (`profId`) em `data.transactions`.
+    - O Dashboard Financeiro possui botões que filtram os cálculos e a Tabela de Transações com base no profissional selecionado (ou exibe o Geral da Barbearia).
+    - O cadastro manual de entrada/saída financeira agora possui um campo opcional para vincular o valor a um profissional.
+    - O gatilho de pagamento na agenda (ao marcar como pago) salva automaticamente o `profId` na transação financeira gerada.
+
 ---
 
 ## 🛠 Arquitetura e Restrições Atuais
