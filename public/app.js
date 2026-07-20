@@ -730,7 +730,7 @@ function renderDashboard() {
                         <strong>${client.name}</strong>
                         <span class="crm-alert-subtext">${appt.date === currentStr ? 'Hoje' : appt.date.split('-').reverse().join('/')} às ${appt.time} - Falta lançar ${formatCurrency(service.price)}</span>
                     </div>
-                    <button class="btn btn-warning btn-sm" onclick="switchTab('agenda')">
+                    <button class="btn btn-warning btn-sm" onclick="openEditAppointment('${appt.id}')">
                         Confirmar
                     </button>
                 `;
