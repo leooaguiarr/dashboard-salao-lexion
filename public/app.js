@@ -1166,6 +1166,25 @@ function openEditAppointment(apptId, mode = 'edit') {
     
     // Show delete button
     document.getElementById('btn-delete-appointment').style.display = 'block';
+    
+    // Add event listener to payment status to auto zero the value
+    const paymentSelect = document.getElementById('appt-payment');
+    const paymentValueInput = document.getElementById('appt-payment-value');
+    
+    paymentSelect.onchange = function() {
+        if (this.value === 'free') {
+            paymentValueInput.value = 0;
+            paymentValueInput.disabled = true;
+        } else {
+            paymentValueInput.disabled = false;
+            if (paymentValueInput.value == 0) {
+                paymentValueInput.value = service ? service.price : '';
+            }
+        }
+    };
+    // Trigger to set initial state
+    paymentSelect.dispatchEvent(new Event('change'));
+
     renderAppointmentMessageTimeline(apptId);
     openModal('modal-appointment');
 }
@@ -1269,18 +1288,18 @@ document.getElementById('form-appointment').addEventListener('submit', (e) => {
 
 // Auto Financial Record Sync
 function triggerFinancialLogging(prev, current, manualPrice) {
-    // If paymentStatus changed to 'paid' or 'cortesia' (or created as such), log as transaction
-    const wasPaid = prev ? (prev.paymentStatus === 'paid' || prev.paymentStatus === 'cortesia') : false;
-    const isPaid = (current.paymentStatus === 'paid' || current.paymentStatus === 'cortesia');
+    // If paymentStatus changed to 'paid' or 'free' (or created as such), log as transaction
+    const wasPaid = prev ? (prev.paymentStatus === 'paid' || prev.paymentStatus === 'free') : false;
+    const isPaid = (current.paymentStatus === 'paid' || current.paymentStatus === 'free');
 
     if (!wasPaid && isPaid) {
         const service = data.services.find(s => s.id === current.serviceId);
         const client = data.clients.find(c => c.id === current.clientId);
         
         let price = manualPrice !== undefined ? manualPrice : (service ? service.price : 50);
-        if (current.paymentStatus === 'cortesia') price = 0;
+        if (current.paymentStatus === 'free') price = 0;
         
-        const isCortesia = current.paymentStatus === 'cortesia';
+        const isCortesia = current.paymentStatus === 'free';
         const desc = `${service ? service.name : 'Serviço'}${isCortesia ? ' (Cortesia)' : ''} - ${client ? client.name : 'Cliente'}`;
 
         const newTrans = {
