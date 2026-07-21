@@ -114,7 +114,8 @@
 
 22. **Correção de Fixação e Sobreposição no Simulador de Celular:**
     - Ajustada a estrutura interna do `.iphone-screen`, `.phone-status-bar` e `.phone-browser-header` com `flex-shrink: 0` e `z-index` elevado.
-    - Isso garante que a barra de status e o notch do celular permaneçam estáticos no topo do aparelho enquanto apenas o conteúdo interno (`.phone-content`) realiza o scroll, eliminando a sobreposição de imagens e textos durante a rolagem.
+    - Reduzido o `z-index` base do `.top-header` (barra fixa superior contendo "+ Novo Agendamento") de `10` para `2` e atribuído `z-index: 5` ao `.iphone-frame`.
+    - Isso garante que, ao rolar a página principal para baixo, a estrutura do mockup do celular passe por baixo do cabeçalho da página sem que o notch/status bar do celular fique colidindo com os botões superiores.
 
 ---
 
