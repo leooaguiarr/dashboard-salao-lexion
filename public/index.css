@@ -1759,7 +1759,7 @@ body {
     background-color: #2d3748;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
-    z-index: 99;
+    z-index: 100;
 }
 
 .iphone-screen {
@@ -1768,19 +1768,21 @@ body {
     flex-direction: column;
     overflow: hidden;
     position: relative;
+    height: 100%;
 }
 
 .phone-status-bar {
-    height: 24px;
-    padding: 0 20px;
+    height: 28px;
+    padding: 4px 20px 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 9px;
     color: var(--text-muted);
     font-weight: 600;
-    z-index: 10;
+    z-index: 90;
     background-color: #0b0f19;
+    flex-shrink: 0;
 }
 
 .phone-icons {
@@ -1797,6 +1799,8 @@ body {
     align-items: center;
     gap: 8px;
     font-size: 11px;
+    z-index: 90;
+    flex-shrink: 0;
 }
 
 .browser-url {
@@ -1820,6 +1824,8 @@ body {
     font-size: 12px;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
 }
 
 /* Public booking page styling elements within Phone Viewport */
