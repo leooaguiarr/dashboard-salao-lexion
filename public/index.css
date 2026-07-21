@@ -2631,7 +2631,7 @@ body {
 
 @media (max-width: 768px) {
     body { overflow-x: hidden; }
-    .top-header { position: sticky; top: 0; z-index: 90; min-height: 58px; background: rgba(15, 20, 30, .92); backdrop-filter: blur(14px); }
+    .top-header { position: sticky; top: 0; z-index: 10; min-height: 58px; background: rgba(15, 20, 30, .92); backdrop-filter: blur(14px); }
     .header-title { font-size: 19px; }
     .pages-container { padding: 12px; }
     .dashboard-layout { gap: 12px; }

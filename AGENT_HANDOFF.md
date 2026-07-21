@@ -108,6 +108,10 @@
     - Ajustados os botões de ação do CRM para ocuparem a largura total (`width: 100%`) facilitando o toque na tela.
     - Um backup local das regras css antigas foi guardado em `backup_mobile_opt`.
 
+21. **Correção de Sobreposição de Camadas (z-index) no Scroll Mobile:**
+    - Ajustado o `z-index` do cabeçalho superior (`.top-header`) no bloco CSS responsivo (`@media max-width: 768px`) de `90` para `10`.
+    - Isso corrige o bug visual onde botões e títulos do topo do painel sobrepunham elementos interativos (como o simulador de smartphone ou modais) durante a rotagem da página.
+
 ---
 
 ## 🛠 Arquitetura e Restrições Atuais
