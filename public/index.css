@@ -292,11 +292,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: rgba(11, 15, 25, 0.4);
+    background-color: var(--bg-primary);
     backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 50;
 }
 
 .header-left {
@@ -1745,7 +1745,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    z-index: 5;
+    z-index: 1;
 }
 
 /* Speaker / Notch */
@@ -2638,7 +2638,7 @@ body {
 
 @media (max-width: 768px) {
     body { overflow-x: hidden; }
-    .top-header { position: sticky; top: 0; z-index: 2; min-height: 58px; background: rgba(15, 20, 30, .92); backdrop-filter: blur(14px); }
+    .top-header { position: sticky; top: 0; z-index: 50; min-height: 58px; background: var(--bg-primary); backdrop-filter: blur(14px); }
     .header-title { font-size: 19px; }
     .pages-container { padding: 12px; }
     .dashboard-layout { gap: 12px; }
