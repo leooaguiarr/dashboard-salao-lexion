@@ -131,6 +131,7 @@ function initMockDatabase() {
             phone: '(11) 99999-8888',
             instagram: 'barbearia.lexion',
             whatsappRecallMessage: 'Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...',
+            whatsappBookingMessage: 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}',
             address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
             hours: {
                 weekdays: { start: '09:00', end: '19:00' },
@@ -2095,6 +2096,10 @@ function renderConfig() {
     if (whatsappMsgElem) {
         whatsappMsgElem.value = data.businessInfo.whatsappRecallMessage || 'Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...';
     }
+    const bookingMsgElem = document.getElementById('biz-whatsapp-booking-msg');
+    if (bookingMsgElem) {
+        bookingMsgElem.value = data.businessInfo.whatsappBookingMessage || 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}';
+    }
 }
 
 // Subnavigation within config tabs
@@ -2133,7 +2138,10 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     const whatsappMsgElem = document.getElementById('biz-whatsapp-msg');
     const whatsappRecallMessage = whatsappMsgElem ? whatsappMsgElem.value : '';
 
-    data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address, whatsappRecallMessage };
+    const bookingMsgElem = document.getElementById('biz-whatsapp-booking-msg');
+    const whatsappBookingMessage = bookingMsgElem ? bookingMsgElem.value : '';
+
+    data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address, whatsappRecallMessage, whatsappBookingMessage };
 
     // Update booking link label in Simulator
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(slug);
@@ -2413,6 +2421,34 @@ document.getElementById('btn-copy-link').addEventListener('click', () => {
     const url = document.getElementById('biz-link-url').innerText;
     navigator.clipboard.writeText(url).then(() => {
         showToast("Link copiado para a área de transferência!", "success");
+    });
+});
+
+// Helper: monta a mensagem de agendamento com tags dinâmicas
+function getBookingWhatsAppMessage() {
+    const defaultMsg = 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}';
+    let msg = data.businessInfo.whatsappBookingMessage || defaultMsg;
+    const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+    const hoje = new Date();
+    const diaSemana = diasSemana[hoje.getDay()];
+    const bookingUrl = document.getElementById('biz-link-url').innerText;
+    msg = msg.replace(/\{dia\}/gi, diaSemana);
+    msg = msg.replace(/\{link\}/gi, bookingUrl);
+    return msg;
+}
+
+// Enviar link de agendamento via WhatsApp (abre wa.me sem número = usuário escolhe o contato)
+document.getElementById('btn-share-whatsapp-link').addEventListener('click', () => {
+    const msg = getBookingWhatsAppMessage();
+    const encodedMsg = encodeURIComponent(msg);
+    window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
+});
+
+// Copiar mensagem com link montada para a área de transferência
+document.getElementById('btn-copy-booking-msg').addEventListener('click', () => {
+    const msg = getBookingWhatsAppMessage();
+    navigator.clipboard.writeText(msg).then(() => {
+        showToast("Mensagem copiada! Cole no WhatsApp.", "success");
     });
 });
 

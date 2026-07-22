@@ -679,6 +679,11 @@
                                     <textarea id="biz-whatsapp-msg" class="form-control" rows="2" placeholder="Ex: Olá {nome}! Tudo bem? Vimos que faz um tempo que você não nos visita..."></textarea>
                                 </div>
                                 <div class="form-group">
+                                    <label for="biz-whatsapp-booking-msg"><i class="fa-brands fa-whatsapp text-success"></i> Mensagem Padrão de Agendamento (WhatsApp)</label>
+                                    <p style="font-size: 11px; color: var(--text-muted); margin-top: -5px; margin-bottom: 5px;">Usada ao enviar o link de agendamento. Tags: <code>{dia}</code> = dia da semana · <code>{link}</code> = link automático.</p>
+                                    <textarea id="biz-whatsapp-booking-msg" class="form-control" rows="2" placeholder="Ex: Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}"></textarea>
+                                </div>
+                                <div class="form-group">
                                     <label for="biz-address">Endereço Completo</label>
                                     <input type="text" id="biz-address" class="form-control" value="Av. Paulista, 1000 - Bela Vista, São Paulo - SP">
                                 </div>
@@ -718,6 +723,10 @@
                                 <div class="link-copier">
                                     <code id="biz-link-url">https://lexion.com.br/agendar/barbearia-lexion</code>
                                     <button class="btn btn-secondary btn-sm" id="btn-copy-link"><i class="fa-regular fa-copy"></i> Copiar</button>
+                                    <button class="btn btn-success btn-sm" id="btn-share-whatsapp-link"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                                </div>
+                                <div class="link-copier" style="margin-top: 8px;">
+                                    <button class="btn btn-outline btn-sm" id="btn-copy-booking-msg" style="width: 100%;"><i class="fa-regular fa-copy"></i> Copiar Mensagem com Link</button>
                                 </div>
                             </div>
 

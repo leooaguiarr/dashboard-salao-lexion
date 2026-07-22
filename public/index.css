@@ -1678,7 +1678,8 @@ body {
 .link-copier {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
     background-color: var(--bg-secondary);
     padding: 10px 14px;
     border-radius: var(--radius-md);
@@ -1690,6 +1691,24 @@ body {
     font-size: 13px;
     color: var(--primary-hover);
     word-break: break-all;
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px dashed var(--border-color);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-outline:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--primary);
 }
 
 .simulator-instructions-box {
