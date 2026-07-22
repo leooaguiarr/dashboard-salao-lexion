@@ -15,6 +15,9 @@
    - Os dados são salvos na tabela `clients` com a nova coluna `birth` formatada como "YYYY-MM-DD".
    - **Dashboard**: Criado o painel "Próximos Aniversariantes" abaixo das Ações Recomendadas de CRM. O painel lista clientes que fazem aniversário nos próximos 7 dias (ou hoje) e inclui um botão de ação rápida para enviar uma mensagem de parabéns pré-definida via WhatsApp.
    - **SQL Supabase**: A função `create_public_booking` foi atualizada no arquivo `docs/public_booking_setup.sql` e uma nova função `check_client_exists` foi adicionada. É necessário que o proprietário do banco rode este script manualmente no SQL Editor do Supabase, já que não temos execução remota direta de migrations.
+1. **Correção de Erro de Schema Supabase (clients):**
+   - O campo virtual `daysSinceLast` criado no frontend pela função `getRecallClients()` estava quebrando o upsert de clientes no Supabase (*"Could not find the 'daysSinceLast' column"*).
+   - O arquivo `api.js` foi atualizado para deletar silenciosamente propriedades virtuais (`daysSinceLast`) do objeto do cliente tanto na função de save quanto na migração para a nuvem.
 1. **Mensagem Padrão de Agendamento via WhatsApp:**
    - Adicionado um novo campo configurável em **Configurações > Dados do Estabelecimento** chamado "Mensagem Padrão de Agendamento (WhatsApp)" com suporte às tags dinâmicas `{dia}` (dia da semana atual) e `{link}` (link de agendamento do salão).
    - Na seção **Link de Agendamento**, foi criada uma **área de composição editável** (textarea) onde a mensagem já vem montada com o dia e o link preenchidos. O profissional pode editar livremente antes de clicar em **"Enviar no WhatsApp"** (abre wa.me sem número — o profissional escolhe o contato). Há também um botão de copiar ao lado.
