@@ -11,9 +11,9 @@
 
 1. **Mensagem Padrão de Agendamento via WhatsApp:**
    - Adicionado um novo campo configurável em **Configurações > Dados do Estabelecimento** chamado "Mensagem Padrão de Agendamento (WhatsApp)" com suporte às tags dinâmicas `{dia}` (dia da semana atual) e `{link}` (link de agendamento do salão).
-   - Na seção **Link de Agendamento**, foram adicionados dois novos botões: **"Enviar no WhatsApp"** (abre wa.me com a mensagem montada, sem número pré-definido — o profissional escolhe o contato) e **"Copiar Mensagem com Link"** (copia a mensagem completa para colar manualmente).
-   - A mensagem padrão é: `Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}` — inspirada no modelo real de envio dos profissionais.
-   - A propriedade `whatsappBookingMessage` foi adicionada ao objeto `data.businessInfo` (campo que já é salvo no Supabase como JSON livre dentro de `businessInfo`).
+   - Na seção **Link de Agendamento**, foi criada uma **área de composição editável** (textarea) onde a mensagem já vem montada com o dia e o link preenchidos. O profissional pode editar livremente antes de clicar em **"Enviar no WhatsApp"** (abre wa.me sem número — o profissional escolhe o contato). Há também um botão de copiar ao lado.
+   - A mensagem padrão é: `Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}`.
+   - **⚠️ IMPORTANTE (Schema Supabase):** A propriedade `whatsappBookingMessage` **NÃO tem coluna** na tabela `business_info` do Supabase. Ela é persistida **apenas no localStorage**. O `api.js` foi atualizado com um filtro `allowedCols` que sanitiza o objeto `businessInfo` antes do upsert, enviando apenas colunas conhecidas ao Supabase. Campos extras ficam apenas no localStorage. Se no futuro for necessário sincronizar entre máquinas, rode: `ALTER TABLE business_info ADD COLUMN "whatsappBookingMessage" TEXT;`
 
 2. **Correção na Exclusão/Cancelamento de Agendamentos:**
    - Ajustada a lista de **Próximos Atendimentos** no Dashboard para ocultar agendamentos com status `'cancelled'` (cancelado), `'done'` (concluído) ou `'no_show'` (falta), mantendo apenas agendamentos futuros e ativos.
