@@ -149,7 +149,14 @@ const DataService = {
                         ({ error } = await supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' }));
                     } else if (Array.isArray(value)) {
                         // Injeta user_id em cada item antes de upsert
-                        const withUserId = value.map(item => ({ ...item, user_id: userId }));
+                        const withUserId = value.map(item => {
+                            const cleaned = { ...item, user_id: userId };
+                            // Remove propriedades virtuais criadas pelo frontend para não quebrar o Supabase (RLS schema)
+                            if (tableName === 'clients') {
+                                delete cleaned.daysSinceLast;
+                            }
+                            return cleaned;
+                        });
                         if (withUserId.length > 0) {
                             ({ error } = await supabaseClient.from(tableName).upsert(withUserId));
                         }
@@ -172,7 +179,14 @@ const DataService = {
         if (!supabaseClient || !this.isAuthenticated()) throw new Error("Não autenticado.");
         const userId = this.getUserId();
 
-        const addUserId = (arr) => arr.map(item => ({ ...item, user_id: userId }));
+        const addUserId = (arr, table) => arr.map(item => {
+            const cleaned = { ...item, user_id: userId };
+            if (table === 'clients') {
+                delete cleaned.daysSinceLast;
+            }
+            return cleaned;
+        });
+
         // Erros do Supabase vêm no retorno, não como exceção — converte
         // em exceção para o botão de migração exibir a falha
         const run = async (promise, table) => {
@@ -189,12 +203,12 @@ const DataService = {
             if (!biz.id) biz.id = undefined;
             await run(supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' }), 'business_info');
         }
-        if (localData.services.length) await run(supabaseClient.from('services').upsert(addUserId(localData.services)), 'services');
-        if (localData.professionals.length) await run(supabaseClient.from('professionals').upsert(addUserId(localData.professionals)), 'professionals');
-        if (localData.clients.length) await run(supabaseClient.from('clients').upsert(addUserId(localData.clients)), 'clients');
-        if (localData.appointments.length) await run(supabaseClient.from('appointments').upsert(addUserId(localData.appointments)), 'appointments');
-        if (localData.leads.length) await run(supabaseClient.from('leads').upsert(addUserId(localData.leads)), 'leads');
-        if (localData.transactions.length) await run(supabaseClient.from('transactions').upsert(addUserId(localData.transactions)), 'transactions');
+        if (localData.services.length) await run(supabaseClient.from('services').upsert(addUserId(localData.services, 'services')), 'services');
+        if (localData.professionals.length) await run(supabaseClient.from('professionals').upsert(addUserId(localData.professionals, 'professionals')), 'professionals');
+        if (localData.clients.length) await run(supabaseClient.from('clients').upsert(addUserId(localData.clients, 'clients')), 'clients');
+        if (localData.appointments.length) await run(supabaseClient.from('appointments').upsert(addUserId(localData.appointments, 'appointments')), 'appointments');
+        if (localData.leads.length) await run(supabaseClient.from('leads').upsert(addUserId(localData.leads, 'leads')), 'leads');
+        if (localData.transactions.length) await run(supabaseClient.from('transactions').upsert(addUserId(localData.transactions, 'transactions')), 'transactions');
     },
 
     // -------------------------
