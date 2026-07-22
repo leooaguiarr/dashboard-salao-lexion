@@ -722,11 +722,16 @@
                                 <span class="link-label">Link do seu Estabelecimento:</span>
                                 <div class="link-copier">
                                     <code id="biz-link-url">https://lexion.com.br/agendar/barbearia-lexion</code>
-                                    <button class="btn btn-secondary btn-sm" id="btn-copy-link"><i class="fa-regular fa-copy"></i> Copiar</button>
-                                    <button class="btn btn-success btn-sm" id="btn-share-whatsapp-link"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                                    <button class="btn btn-secondary btn-sm" id="btn-copy-link"><i class="fa-regular fa-copy"></i> Copiar Link</button>
                                 </div>
-                                <div class="link-copier" style="margin-top: 8px;">
-                                    <button class="btn btn-outline btn-sm" id="btn-copy-booking-msg" style="width: 100%;"><i class="fa-regular fa-copy"></i> Copiar Mensagem com Link</button>
+
+                                <div class="booking-msg-composer" style="margin-top: 14px;">
+                                    <span class="link-label"><i class="fa-brands fa-whatsapp text-success"></i> Mensagem para enviar ao cliente:</span>
+                                    <textarea id="booking-msg-draft" class="form-control" rows="3" style="font-size: 13px; resize: vertical;"></textarea>
+                                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                        <button class="btn btn-success btn-sm" id="btn-share-whatsapp-link" style="flex: 1;"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                                        <button class="btn btn-secondary btn-sm" id="btn-copy-booking-msg" title="Copiar mensagem"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
                                 </div>
                             </div>
 

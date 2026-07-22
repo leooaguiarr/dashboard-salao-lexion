@@ -2424,7 +2424,7 @@ document.getElementById('btn-copy-link').addEventListener('click', () => {
     });
 });
 
-// Helper: monta a mensagem de agendamento com tags dinâmicas
+// Helper: monta a mensagem de agendamento com tags dinâmicas (a partir do template salvo)
 function getBookingWhatsAppMessage() {
     const defaultMsg = 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}';
     let msg = data.businessInfo.whatsappBookingMessage || defaultMsg;
@@ -2437,18 +2437,28 @@ function getBookingWhatsAppMessage() {
     return msg;
 }
 
-// Enviar link de agendamento via WhatsApp (abre wa.me sem número = usuário escolhe o contato)
+// Popula o textarea de composição com a mensagem já montada
+function populateBookingDraft() {
+    const draft = document.getElementById('booking-msg-draft');
+    if (draft) {
+        draft.value = getBookingWhatsAppMessage();
+    }
+}
+
+// Enviar via WhatsApp — pega o texto do textarea (que o profissional pode ter editado)
 document.getElementById('btn-share-whatsapp-link').addEventListener('click', () => {
-    const msg = getBookingWhatsAppMessage();
+    const draft = document.getElementById('booking-msg-draft');
+    const msg = draft ? draft.value : getBookingWhatsAppMessage();
     const encodedMsg = encodeURIComponent(msg);
     window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
 });
 
-// Copiar mensagem com link montada para a área de transferência
+// Copiar mensagem do textarea para a área de transferência
 document.getElementById('btn-copy-booking-msg').addEventListener('click', () => {
-    const msg = getBookingWhatsAppMessage();
+    const draft = document.getElementById('booking-msg-draft');
+    const msg = draft ? draft.value : getBookingWhatsAppMessage();
     navigator.clipboard.writeText(msg).then(() => {
-        showToast("Mensagem copiada! Cole no WhatsApp.", "success");
+        showToast("Mensagem copiada!", "success");
     });
 });
 
@@ -2458,6 +2468,9 @@ function initPhoneSimulator() {
     
     // Update link code text
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(data.businessInfo.slug);
+    
+    // Preenche o textarea com a mensagem de agendamento montada
+    populateBookingDraft();
     
     renderPhoneScreen();
 }
