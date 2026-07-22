@@ -198,6 +198,11 @@ async function loadData() {
     data.leads = sanitizeForStorage(loaded.leads);
     data.transactions = sanitizeForStorage(loaded.transactions);
     data.businessInfo = sanitizeForStorage(loaded.businessInfo);
+    // Campos que existem apenas no localStorage (não têm coluna no Supabase)
+    const localBiz = JSON.parse(localStorage.getItem(STATE_KEYS.BUSINESS_INFO) || '{}');
+    if (!data.businessInfo.whatsappBookingMessage && localBiz.whatsappBookingMessage) {
+        data.businessInfo.whatsappBookingMessage = localBiz.whatsappBookingMessage;
+    }
     data.automationRules = sanitizeForStorage(loaded.automationRules);
     data.messageJobs = sanitizeForStorage(loaded.messageJobs);
 }

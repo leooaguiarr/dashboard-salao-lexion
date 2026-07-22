@@ -138,7 +138,13 @@ const DataService = {
                     const userId = this.getUserId();
                     let error = null;
                     if (tableName === 'business_info' && typeof value === 'object' && !Array.isArray(value)) {
-                        const biz = { ...value, user_id: userId };
+                        // Apenas envia colunas que existem na tabela do Supabase.
+                        // Campos extras (ex: whatsappBookingMessage) ficam somente no localStorage.
+                        const allowedCols = ['id','user_id','name','slug','phone','instagram','address','hours','whatsappRecallMessage','created_at','avatarUrl'];
+                        const biz = { user_id: userId };
+                        for (const col of allowedCols) {
+                            if (value[col] !== undefined) biz[col] = value[col];
+                        }
                         if (!biz.id) biz.id = undefined; // let DB generate UUID
                         ({ error } = await supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' }));
                     } else if (Array.isArray(value)) {
@@ -175,7 +181,11 @@ const DataService = {
         };
 
         if (localData.businessInfo && localData.businessInfo.name) {
-            const biz = { ...localData.businessInfo, user_id: userId };
+            const allowedCols = ['id','user_id','name','slug','phone','instagram','address','hours','whatsappRecallMessage','created_at','avatarUrl'];
+            const biz = { user_id: userId };
+            for (const col of allowedCols) {
+                if (localData.businessInfo[col] !== undefined) biz[col] = localData.businessInfo[col];
+            }
             if (!biz.id) biz.id = undefined;
             await run(supabaseClient.from('business_info').upsert(biz, { onConflict: 'user_id' }), 'business_info');
         }
