@@ -9,7 +9,13 @@
 
 ## 📅 Últimas Modificações (Sessão de Hoje)
 
-1. **Correção na Exclusão/Cancelamento de Agendamentos:**
+1. **Mensagem Padrão de Agendamento via WhatsApp:**
+   - Adicionado um novo campo configurável em **Configurações > Dados do Estabelecimento** chamado "Mensagem Padrão de Agendamento (WhatsApp)" com suporte às tags dinâmicas `{dia}` (dia da semana atual) e `{link}` (link de agendamento do salão).
+   - Na seção **Link de Agendamento**, foram adicionados dois novos botões: **"Enviar no WhatsApp"** (abre wa.me com a mensagem montada, sem número pré-definido — o profissional escolhe o contato) e **"Copiar Mensagem com Link"** (copia a mensagem completa para colar manualmente).
+   - A mensagem padrão é: `Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}` — inspirada no modelo real de envio dos profissionais.
+   - A propriedade `whatsappBookingMessage` foi adicionada ao objeto `data.businessInfo` (campo que já é salvo no Supabase como JSON livre dentro de `businessInfo`).
+
+2. **Correção na Exclusão/Cancelamento de Agendamentos:**
    - Ajustada a lista de **Próximos Atendimentos** no Dashboard para ocultar agendamentos com status `'cancelled'` (cancelado), `'done'` (concluído) ou `'no_show'` (falta), mantendo apenas agendamentos futuros e ativos.
    - Atualizado o evento de clique do botão "Excluir" (`btn-delete-appointment`) para sincronizar e cancelar as mensagens automáticas pendentes associadas ao agendamento, e re-renderizar a página atual (utilizando `renderPageData`) para que a lista de agendamentos no Dashboard sum
 2. **Planejamento de Fotos dos Profissionais:**
