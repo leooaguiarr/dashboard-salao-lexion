@@ -212,6 +212,17 @@ const DataService = {
         return data;
     },
 
+    // Retorna true se o telefone já existe, false se é novo cliente
+    async checkPublicClientExists(slug, phone) {
+        if (!supabaseClient) return false;
+        const { data, error } = await supabaseClient.rpc('check_client_exists', { p_slug: slug, p_phone: phone });
+        if (error) {
+            console.error("Erro ao checar cliente público:", error);
+            return false;
+        }
+        return data;
+    },
+
     // Grava cliente + agendamento + lead na conta do salão dono do slug.
     // Retorna { ok: true, appointmentId, profId } ou { ok: false, error }
     async createPublicBooking(slug, booking) {
@@ -223,7 +234,8 @@ const DataService = {
             p_service_id: booking.serviceId,
             p_prof_id: booking.profId,
             p_date: booking.date,
-            p_time: booking.time
+            p_time: booking.time,
+            p_birth: booking.birth || null
         });
         if (error) throw error;
         return data;

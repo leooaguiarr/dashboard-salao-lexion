@@ -114,6 +114,35 @@ END;
 $$;
 
 -- ------------------------------------------------------------
+-- 3.5. FUNÇÃO PÚBLICA: Checar se o cliente já existe pelo telefone
+-- Útil para saber se precisamos pedir a data de nascimento no frontend
+-- ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION check_client_exists(p_slug text, p_phone text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_user_id uuid;
+    v_exists boolean;
+BEGIN
+    SELECT user_id INTO v_user_id FROM business_info
+    WHERE slug = p_slug ORDER BY created_at DESC LIMIT 1;
+    
+    IF NOT FOUND THEN
+        RETURN false;
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1 FROM clients WHERE user_id = v_user_id AND phone = p_phone
+    ) INTO v_exists;
+
+    RETURN v_exists;
+END;
+$$;
+
+-- ------------------------------------------------------------
 -- 4. FUNÇÃO PÚBLICA: criar agendamento pelo link
 -- Valida serviço/profissional/horário e grava cliente,
 -- agendamento e lead na conta do salão dono do slug.
@@ -121,7 +150,7 @@ $$;
 CREATE OR REPLACE FUNCTION create_public_booking(
     p_slug text, p_name text, p_phone text,
     p_service_id text, p_prof_id text,
-    p_date text, p_time text
+    p_date text, p_time text, p_birth text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -182,8 +211,8 @@ BEGIN
     WHERE user_id = v_biz.user_id AND phone = p_phone LIMIT 1;
     IF v_client_id IS NULL THEN
         v_client_id := 'cli-' || (floor(extract(epoch FROM clock_timestamp()) * 1000))::bigint;
-        INSERT INTO clients (id, user_id, name, phone, frequency, "lastVisit", notes)
-        VALUES (v_client_id, v_biz.user_id, trim(p_name), p_phone, 30, p_date,
+        INSERT INTO clients (id, user_id, name, phone, birth, frequency, "lastVisit", notes)
+        VALUES (v_client_id, v_biz.user_id, trim(p_name), p_phone, p_birth, 30, p_date,
                 'Cliente cadastrado automaticamente pelo link público.');
     END IF;
 
