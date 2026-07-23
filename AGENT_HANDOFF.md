@@ -137,7 +137,20 @@
     - Definido `z-index: 50` e fundo sólido escuro (`var(--bg-primary)`) no `.top-header` (cabeçalho fixo com o botão "+ Novo Agendamento") e atribuído `z-index: 1` ao `.iphone-frame`.
     - Isso garante que o cabeçalho fique permanentemente fixo e visível por cima de tudo na tela enquanto o celular passa suavemente por trás do cabeçalho ao rolar a página.
 
----
+
+23. **Controle de Caixa e Comiss�es (Financeiro):**
+    - Adicionado suporte a `cashRegisters` no `app.js` e script SQL para cria��o da tabela no Supabase (`docs/supabase_cash_registers.sql`).
+    - Criada a funcionalidade "Caixa do Dia" na aba Financeiro: bot�o para Abrir Caixa e Fechar Caixa.
+    - Se um recebimento ou transa��o for em *Dinheiro* e o Caixa estiver Fechado, a transa��o entra como `pending` e n�o contabiliza no faturamento l�quido.
+    - Quando o Caixa � aberto, o sistema varre as transa��es *pendentes* em dinheiro e as confirma automaticamente.
+    - O Dashboard Financeiro agora permite filtrar por **Per�odos** (Hoje, 7 Dias, 30 Dias).
+    - Adicionado no painel o c�lculo de **Comiss�es do Per�odo**, utilizando a porcentagem (`commission`) gravada no perfil do profissional. O sistema c�lcula o valor real (agendamentos pagos) e o valor *Previsto* (agendamentos confirmados mas pendentes de pagamento).
+
+24. **Aprimoramento do Painel Caixa do Dia:**
+    - A visualização do "Caixa do Dia" agora é dinâmica baseada no filtro de profissional.
+    - No modo Geral (Todos), exibe o Saldo em Gaveta, a Projeção de Faturamento de Hoje (soma de todos os agendamentos ativos do dia) e os Gastos do Dia.
+    - No modo Profissional, exibe o Saldo em Gaveta (fixo) e métricas específicas do barbeiro: Comissão Hoje, Agendamentos Hoje e Projeção de Comissão no Mês.
+    - O layout dos filtros de Período e Profissional no Financeiro foi ajustado para ficarem lado a lado (row e nowrap) separados por uma linha vertical divisória.
 
 ## 🛠 Arquitetura e Restrições Atuais
 
@@ -146,17 +159,3 @@
 - **Tratamento de Strings:** Sempre utilize IDs puros para lidar com DOM, e evite concatenações de HTML gigantescas sem validação `escapeHTML` caso exiba inputs diretos.
 
 *Boa sorte no próximo turno! 🚀*
-
-23. **Controle de Caixa e Comiss�es (Financeiro):**
-    - Adicionado suporte a `cashRegisters` no `app.js` e script SQL para cria��o da tabela no Supabase (`docs/supabase_cash_registers.sql`).
-    - Criada a funcionalidade "Caixa do Dia" na aba Financeiro: bot�o para Abrir Caixa e Fechar Caixa.
-    - Se um recebimento ou transa��o for em *Dinheiro* e o Caixa estiver Fechado, a transa��o entra como `pending` e n�o contabiliza no faturamento l�quido.
-    - Quando o Caixa � aberto, o sistema varre as transa��es *pendentes* em dinheiro e as confirma automaticamente.
-    - O Dashboard Financeiro agora permite filtrar por **Per�odos** (Hoje, 7 Dias, 30 Dias).
-    - Adicionado no painel o c�lculo de **Comiss�es do Per�odo**, utilizando a porcentagem (`commission`) gravada no perfil do profissional. O sistema c�lcula o valor real (agendamentos pagos) e o valor *Previsto* (agendamentos confirmados mas pendentes de pagamento).
-
-24. **Aprimoramento do Painel Caixa do Dia:**
-    - A visualização do "Caixa do Dia" agora é dinâmica baseada no filtro de profissional.
-    - No modo Geral (Todos), exibe o Saldo em Gaveta, a Projeção de Faturamento de Hoje (soma de todos os agendamentos ativos do dia) e os Gastos do Dia.
-    - No modo Profissional, exibe o Saldo em Gaveta (fixo) e métricas específicas do barbeiro: Comissão Hoje, Agendamentos Hoje e Projeção de Comissão no Mês.
-    - O layout dos filtros de Período e Profissional no Financeiro foi ajustado para ficarem lado a lado (row e nowrap) separados por uma linha vertical divisória.
