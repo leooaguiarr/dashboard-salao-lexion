@@ -3849,7 +3849,8 @@ document.getElementById('form-open-register').addEventListener('submit', (e) => 
         dateClosed: null,
         initialCash: initial,
         finalCash: 0,
-        status: 'open'
+        status: 'open',
+        created_at: new Date().toISOString()
     };
     
     data.cashRegisters.push(newReg);

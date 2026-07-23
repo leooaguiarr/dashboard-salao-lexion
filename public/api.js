@@ -173,6 +173,10 @@ const DataService = {
                             if (tableName === 'clients') {
                                 delete cleaned.daysSinceLast;
                             }
+                            // Garante que o created_at exista para cash_registers (evita erro de not-null na nuvem)
+                            if (tableName === 'cash_registers' && !cleaned.created_at) {
+                                cleaned.created_at = new Date().toISOString();
+                            }
                             return cleaned;
                         });
                         if (withUserId.length > 0) {
@@ -207,6 +211,9 @@ const DataService = {
             const cleaned = { ...item, user_id: userId };
             if (table === 'clients') {
                 delete cleaned.daysSinceLast;
+            }
+            if (table === 'cash_registers' && !cleaned.created_at) {
+                cleaned.created_at = new Date().toISOString();
             }
             return cleaned;
         });
