@@ -2761,7 +2761,7 @@ function renderPhoneScreen() {
     const firstLetter = businessName.charAt(0).toUpperCase();
     const avatarUrl = data.businessInfo.avatarUrl || '';
     const logoHtml = avatarUrl 
-        ? `<img src="${escapeHTML(avatarUrl)}" class="pub-logo" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); margin-bottom:10px; display:inline-block;">` 
+        ? `<img src="${escapeHTML(avatarUrl)}" class="pub-logo" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); margin-bottom:12px; display:inline-block;">` 
         : `<div class="pub-logo">${firstLetter}</div>`;
 
     // Step 1: Client contact details
