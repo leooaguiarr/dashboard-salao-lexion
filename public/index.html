@@ -253,18 +253,6 @@
                                 </div>
                             </div>
 
-                            <!-- Pending Payments Panel -->
-                            <div class="dashboard-panel glass-effect" style="margin-top: 20px;">
-                                <div class="panel-header">
-                                    <h4 class="panel-title"><i class="fa-solid fa-money-check-dollar text-warning"></i> Confirmar Pagamentos</h4>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="crm-quick-actions" id="dash-pending-payments-list">
-                                        <!-- Pending payments populated dynamically -->
-                                    </div>
-                                </div>
-                            </div>
-
 
                             <!-- Leads Panel -->
                             <div class="dashboard-panel glass-effect feature-paused">
@@ -653,10 +641,20 @@
                         <div class="dashboard-side-panels">
                             <div class="dashboard-panel glass-effect">
                                 <div class="panel-header">
+                                    <h4 class="panel-title"><i class="fa-solid fa-money-check-dollar text-warning"></i> Confirmar Pagamentos</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="crm-quick-actions" id="dash-pending-payments-list">
+                                        <!-- Pending payments populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dashboard-panel glass-effect">
+                                <div class="panel-header">
                                     <h4 class="panel-title"><i class="fa-solid fa-chart-pie text-purple"></i> Faturamento por Serviço</h4>
                                 </div>
                                 <div class="panel-body">
-                                    <div class="chart-box-mock" id="chart-service-revenue">
+                                    <div class="chart-box-mock" id="chart-service-revenue" style="max-height: 200px; overflow-y: auto; padding-right: 8px;">
                                         <!-- Mock graph displaying bars representing revenue per service -->
                                     </div>
                                 </div>

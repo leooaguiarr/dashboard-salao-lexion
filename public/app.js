@@ -704,53 +704,6 @@ function renderDashboard() {
         });
     }
 
-    // 3.5 Render Pending Payments
-    const pendingList = document.getElementById('dash-pending-payments-list');
-    if (pendingList) {
-        pendingList.innerHTML = '';
-        
-        const now = new Date();
-        const currentStr = getLocalDateString(now);
-        const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-        const pendingAppts = data.appointments.filter(appt => {
-            if (appt.paymentStatus === 'paid' || appt.paymentStatus === 'free') return false;
-            if (appt.status === 'cancelled' || appt.status === 'no_show') return false;
-            
-            // Time has passed?
-            if (appt.date < currentStr) return true;
-            if (appt.date === currentStr && appt.time < timeStr) return true;
-            return false;
-        });
-
-        if (pendingAppts.length === 0) {
-            pendingList.innerHTML = `
-                <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 15px;">
-                    <i class="fa-solid fa-check text-success" style="margin-bottom: 8px; font-size: 20px; display: block;"></i>
-                    Nenhum pagamento pendente!
-                </div>
-            `;
-        } else {
-            pendingAppts.slice(0, 5).forEach(appt => {
-                const client = data.clients.find(c => c.id === appt.clientId) || { name: 'Cliente' };
-                const service = data.services.find(s => s.id === appt.serviceId) || { price: 0 };
-                
-                const card = document.createElement('div');
-                card.className = 'crm-alert-card';
-                card.style.borderLeftColor = 'var(--warning)';
-                card.innerHTML = `
-                    <div class="crm-alert-text">
-                        <strong>${client.name}</strong>
-                        <span class="crm-alert-subtext">${appt.date === currentStr ? 'Hoje' : appt.date.split('-').reverse().join('/')} às ${appt.time} - Falta lançar ${formatCurrency(service.price)}</span>
-                    </div>
-                    <button class="btn btn-warning btn-sm" onclick="openEditAppointment('${appt.id}', 'pay')">
-                        Confirmar
-                    </button>
-                `;
-                pendingList.appendChild(card);
-            });
-        }
-    }
 
     // 3.8 Render Birthdays
     const birthdaysList = document.getElementById('dash-birthdays-list');
@@ -2162,6 +2115,56 @@ function renderFinance() {
     // 3. Render HTML Custom Graphs (No canvas library needed, raw CSS layouts)
     renderServiceRevenueChart();
     renderPaymentMethodsChart();
+    renderPendingPayments();
+}
+
+function renderPendingPayments() {
+    const pendingList = document.getElementById('dash-pending-payments-list');
+    if (pendingList) {
+        pendingList.innerHTML = '';
+        
+        const now = new Date();
+        const currentStr = getLocalDateString(now);
+        const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        const pendingAppts = data.appointments.filter(appt => {
+            if (appt.paymentStatus === 'paid' || appt.paymentStatus === 'free') return false;
+            if (appt.status === 'cancelled' || appt.status === 'no_show') return false;
+            
+            // Time has passed?
+            if (appt.date < currentStr) return true;
+            if (appt.date === currentStr && appt.time < timeStr) return true;
+            return false;
+        });
+
+        if (pendingAppts.length === 0) {
+            pendingList.innerHTML = `
+                <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 15px;">
+                    <i class="fa-solid fa-check text-success" style="margin-bottom: 8px; font-size: 20px; display: block;"></i>
+                    Nenhum pagamento pendente!
+                </div>
+            `;
+        } else {
+            pendingAppts.slice(0, 5).forEach(appt => {
+                const client = data.clients.find(c => c.id === appt.clientId) || { name: 'Cliente' };
+                const service = data.services.find(s => s.id === appt.serviceId) || { price: 0 };
+                
+                const card = document.createElement('div');
+                card.className = 'crm-alert-card';
+                card.style.borderLeftColor = 'var(--warning)';
+                card.innerHTML = `
+                    <div class="crm-alert-text">
+                        <strong>${client.name}</strong>
+                        <span class="crm-alert-subtext">${appt.date === currentStr ? 'Hoje' : appt.date.split('-').reverse().join('/')} às ${appt.time} - Falta lançar ${formatCurrency(service.price)}</span>
+                    </div>
+                    <button class="btn btn-warning btn-sm" onclick="openEditAppointment('${appt.id}', 'pay')">
+                        Confirmar
+                    </button>
+                `;
+                pendingList.appendChild(card);
+            });
+        }
+    }
 }
 
 function renderServiceRevenueChart() {
