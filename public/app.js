@@ -124,6 +124,10 @@ function initMockDatabase() {
         localStorage.setItem(STATE_KEYS.TRANSACTIONS, JSON.stringify(defaultTrans));
     }
 
+    if (!localStorage.getItem(STATE_KEYS.CASH_REGISTERS)) {
+        localStorage.setItem(STATE_KEYS.CASH_REGISTERS, JSON.stringify([]));
+    }
+
     // 7. BUSINESS INFO
     if (!localStorage.getItem(STATE_KEYS.BUSINESS_INFO)) {
         const defaultBiz = {

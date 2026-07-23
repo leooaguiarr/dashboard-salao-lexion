@@ -177,6 +177,12 @@ const DataService = {
                         });
                         if (withUserId.length > 0) {
                             ({ error } = await supabaseClient.from(tableName).upsert(withUserId));
+                            
+                            // Fallback for cash_registers if user hasn't run the migration script
+                            if (error && tableName === 'cash_registers' && error.message.includes('user_id')) {
+                                console.warn("Coluna user_id ausente em cash_registers, tentando sem ela...");
+                                ({ error } = await supabaseClient.from(tableName).upsert(value));
+                            }
                         }
                     }
                     // Erros do Supabase vêm no retorno, não como exceção
@@ -227,7 +233,18 @@ const DataService = {
         if (localData.appointments.length) await run(supabaseClient.from('appointments').upsert(addUserId(localData.appointments, 'appointments')), 'appointments');
         if (localData.leads.length) await run(supabaseClient.from('leads').upsert(addUserId(localData.leads, 'leads')), 'leads');
         if (localData.transactions.length) await run(supabaseClient.from('transactions').upsert(addUserId(localData.transactions, 'transactions')), 'transactions');
-    },
+        if (localData.cashRegisters && localData.cashRegisters.length) {
+            try {
+                await run(supabaseClient.from('cash_registers').upsert(addUserId(localData.cashRegisters, 'cash_registers')), 'cash_registers');
+            } catch (err) {
+                if (err.message.includes('user_id')) {
+                    console.warn("Fallback de migração: tentando cash_registers sem user_id");
+                    await run(supabaseClient.from('cash_registers').upsert(localData.cashRegisters), 'cash_registers');
+                } else {
+                    throw err;
+                }
+            }
+        }
 
     // -------------------------
     // LINK PÚBLICO DE AGENDAMENTO (sem login)
