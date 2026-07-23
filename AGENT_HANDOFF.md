@@ -14,7 +14,11 @@
    - Atualizado o `app.js` para persistir o percentual de `commission` no objeto do profissional e exibi-lo no card do barbeiro na aba de Configurações.
    - Isso servirá de base para futuros cálculos de repasses financeiros no Dashboard.
 
-2. **Captura de Data de Nascimento e Aniversários no Dashboard:**
+2. **Melhoria UX no Modal de Confirmação de Pagamento (Dashboard):**
+   - A função `openEditAppointment` no `app.js` foi atualizada. Quando o modal de agendamento é aberto a partir do botão "Confirmar" da aba de **Confirmar Pagamentos** (dashboard, `mode === 'pay'`), o modal agora abre **diretamente nos campos de pagamento** e a opção/botão de alternar para "Horário" é ocultada.
+   - A funcionalidade de alternar e editar horários agora fica restrita apenas à visualização padrão vinda da **Agenda**.
+
+3. **Captura de Data de Nascimento e Aniversários no Dashboard:**
    - Adicionado novo fluxo no **Agendamento Público (Simulador/Link)**: ao inserir o WhatsApp, o sistema agora checa se o cliente já existe (via RPC `check_client_exists` no Supabase ou verificação local).
    - Se o cliente for novo, um campo de "Data de Nascimento" é exibido obrigando o preenchimento para avançar.
    - Os dados são salvos na tabela `clients` com a nova coluna `birth` formatada como "YYYY-MM-DD".
