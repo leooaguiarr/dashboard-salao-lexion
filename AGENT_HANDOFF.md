@@ -146,3 +146,11 @@
 - **Tratamento de Strings:** Sempre utilize IDs puros para lidar com DOM, e evite concatenaÃ§Ãµes de HTML gigantescas sem validaÃ§Ã£o `escapeHTML` caso exiba inputs diretos.
 
 *Boa sorte no prÃ³ximo turno! ðŸš€*
+
+23. **Controle de Caixa e Comissões (Financeiro):**
+    - Adicionado suporte a `cashRegisters` no `app.js` e script SQL para criação da tabela no Supabase (`docs/supabase_cash_registers.sql`).
+    - Criada a funcionalidade "Caixa do Dia" na aba Financeiro: botão para Abrir Caixa e Fechar Caixa.
+    - Se um recebimento ou transação for em *Dinheiro* e o Caixa estiver Fechado, a transação entra como `pending` e não contabiliza no faturamento líquido.
+    - Quando o Caixa é aberto, o sistema varre as transações *pendentes* em dinheiro e as confirma automaticamente.
+    - O Dashboard Financeiro agora permite filtrar por **Períodos** (Hoje, 7 Dias, 30 Dias).
+    - Adicionado no painel o cálculo de **Comissões do Período**, utilizando a porcentagem (`commission`) gravada no perfil do profissional. O sistema cálcula o valor real (agendamentos pagos) e o valor *Previsto* (agendamentos confirmados mas pendentes de pagamento).

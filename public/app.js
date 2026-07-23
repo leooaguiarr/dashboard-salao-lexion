@@ -14,7 +14,8 @@ const STATE_KEYS = {
     TRANSACTIONS: 'lexion_transactions',
     BUSINESS_INFO: 'lexion_business_info',
     AUTOMATION_RULES: 'lexion_automation_rules',
-    MESSAGE_JOBS: 'lexion_message_jobs'
+    MESSAGE_JOBS: 'lexion_message_jobs',
+    CASH_REGISTERS: 'lexion_cash_registers'
 };
 
 // Data usada apenas pelos dados de demonstração (modo local/demo)
@@ -186,7 +187,8 @@ let data = {
     transactions: [],
     businessInfo: {},
     automationRules: [],
-    messageJobs: []
+    messageJobs: [],
+    cashRegisters: []
 };
 
 async function loadData() {
@@ -197,6 +199,7 @@ async function loadData() {
     data.appointments = sanitizeForStorage(loaded.appointments);
     data.leads = sanitizeForStorage(loaded.leads);
     data.transactions = sanitizeForStorage(loaded.transactions);
+    data.cashRegisters = sanitizeForStorage(loaded.cashRegisters) || [];
     data.businessInfo = sanitizeForStorage(loaded.businessInfo);
     // Campos que existem apenas no localStorage (não têm coluna no Supabase)
     const localBiz = JSON.parse(localStorage.getItem(STATE_KEYS.BUSINESS_INFO) || '{}');
@@ -1393,6 +1396,13 @@ function triggerFinancialLogging(prev, current, manualPrice) {
         const isCortesia = current.paymentStatus === 'free';
         const desc = `${service ? service.name : 'Serviço'}${isCortesia ? ' (Cortesia)' : ''} - ${client ? client.name : 'Cliente'}`;
 
+        const paymentMethod = isCortesia ? 'Cortesia' : (current.paymentMethod || 'pix');
+        const activeRegister = window.getCurrentCashRegister ? window.getCurrentCashRegister() : null;
+        let status = 'completed';
+        if (!activeRegister && paymentMethod === 'dinheiro') {
+            status = 'pending';
+        }
+
         const newTrans = {
             id: 'tr-' + Date.now(),
             type: 'income',
@@ -1400,8 +1410,9 @@ function triggerFinancialLogging(prev, current, manualPrice) {
             date: current.date,
             description: desc,
             category: 'Serviço',
-            paymentMethod: isCortesia ? 'Cortesia' : (current.paymentMethod || 'pix'),
-            profId: current.profId || ''
+            paymentMethod: paymentMethod,
+            profId: current.profId || '',
+            status: status
         };
         data.transactions.push(newTrans);
         saveData(STATE_KEYS.TRANSACTIONS, data.transactions);
@@ -1858,6 +1869,12 @@ document.getElementById('btn-delete-lead').addEventListener('click', () => {
 
 // --- 5. FINANCE COMPONENT ---
 let currentFinanceProfId = 'all';
+let currentFinancePeriod = 'monthly'; // 'daily', 'weekly', 'monthly'
+
+window.setFinancePeriodFilter = function(period) {
+    currentFinancePeriod = period;
+    renderFinance();
+}
 
 function setFinanceProfFilter(profId) {
     currentFinanceProfId = profId;
@@ -1883,29 +1900,78 @@ function renderFinance() {
         });
     }
 
-    const filteredTransactions = currentFinanceProfId === 'all' 
-        ? data.transactions 
-        : data.transactions.filter(t => t.profId === currentFinanceProfId);
+    // Update Period buttons CSS
+    ['daily', 'weekly', 'monthly'].forEach(p => {
+        const btn = document.getElementById('btn-period-' + p);
+        if (btn) btn.className = `btn ${currentFinancePeriod === p ? 'btn-primary' : 'btn-secondary'}`;
+    });
+
+    const now = new Date();
+    let startDate = new Date(now);
+    if (currentFinancePeriod === 'daily') {
+        startDate.setHours(0,0,0,0);
+    } else if (currentFinancePeriod === 'weekly') {
+        startDate.setDate(now.getDate() - 7);
+    } else if (currentFinancePeriod === 'monthly') {
+        startDate.setDate(now.getDate() - 30);
+    }
+    const startDateStr = getLocalDateString(startDate);
+
+    const filteredTransactions = data.transactions.filter(t => {
+        const passProf = currentFinanceProfId === 'all' || t.profId === currentFinanceProfId;
+        const passDate = t.date >= startDateStr;
+        return passProf && passDate;
+    });
 
     // 1. Calculate values
     let totalIn = 0;
     let totalOut = 0;
     
     filteredTransactions.forEach(t => {
-        if (t.type === 'income') totalIn += t.amount;
-        else totalOut += t.amount;
+        if (t.status !== 'pending') {
+            if (t.type === 'income') totalIn += t.amount;
+            else totalOut += t.amount;
+        }
     });
 
     const netProfit = totalIn - totalOut;
 
     // Calculate ticket medio (done appts total spent / done appts count)
-    const paidAppts = data.appointments.filter(a => a.status === 'done' && a.paymentStatus === 'paid');
+    const paidAppts = data.appointments.filter(a => {
+        const passStatus = a.status === 'done' && a.paymentStatus === 'paid';
+        const passProf = currentFinanceProfId === 'all' || a.profId === currentFinanceProfId;
+        const passDate = a.date >= startDateStr;
+        return passStatus && passProf && passDate;
+    });
+    
     let ticketSum = 0;
+    let totalCommission = 0;
+    
     paidAppts.forEach(a => {
         const srv = data.services.find(s => s.id === a.serviceId);
-        if (srv) ticketSum += srv.price;
+        if (srv) {
+            ticketSum += srv.price;
+            const prof = data.professionals.find(p => p.id === a.profId);
+            if (prof && prof.commission) {
+                totalCommission += (srv.price * (prof.commission / 100));
+            }
+        }
     });
     const ticketMedio = paidAppts.length > 0 ? (ticketSum / paidAppts.length) : 0;
+    
+    // Calculate forecasted commission for unpaid appts in the future
+    let forecastedCommission = 0;
+    data.appointments.filter(a => a.paymentStatus !== 'paid' && a.status !== 'cancelled' && a.status !== 'no_show').forEach(a => {
+        const passProf = currentFinanceProfId === 'all' || a.profId === currentFinanceProfId;
+        const passDate = a.date >= startDateStr;
+        if (passProf && passDate) {
+            const srv = data.services.find(s => s.id === a.serviceId);
+            const prof = data.professionals.find(p => p.id === a.profId);
+            if (srv && prof && prof.commission) {
+                forecastedCommission += (srv.price * (prof.commission / 100));
+            }
+        }
+    });
 
     // Update displays
     document.getElementById('fin-total-income').innerText = formatCurrency(totalIn);
@@ -1920,6 +1986,43 @@ function renderFinance() {
     }
 
     document.getElementById('fin-ticket-medio').innerText = formatCurrency(ticketMedio);
+    
+    // Update Commissions
+    if (currentFinanceProfId === 'all') {
+        document.getElementById('cash-register-commission').innerText = `R$ 0,00 (Selecione)`;
+    } else {
+        document.getElementById('cash-register-commission').innerHTML = `${formatCurrency(totalCommission)} <br><span style="font-size:0.8rem;color:var(--text-muted);">+ ${formatCurrency(forecastedCommission)} previsto</span>`;
+    }
+
+    // Cash Register display logic
+    const activeRegister = window.getCurrentCashRegister ? window.getCurrentCashRegister() : null;
+    const badge = document.getElementById('cash-register-status-badge');
+    const btnOpen = document.getElementById('btn-open-register');
+    const btnClose = document.getElementById('btn-close-register');
+    const balanceEl = document.getElementById('cash-register-balance');
+
+    if (activeRegister) {
+        badge.className = 'status-badge success';
+        badge.innerText = 'Aberto';
+        btnOpen.style.display = 'none';
+        btnClose.style.display = 'inline-flex';
+        
+        // Calculate current balance
+        const start = activeRegister.dateOpened;
+        const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10)); // approximate by date string
+        let currentCash = parseFloat(activeRegister.initialCash || 0);
+        cashTrans.forEach(t => {
+            if (t.type === 'income') currentCash += t.amount;
+            else currentCash -= t.amount;
+        });
+        balanceEl.innerText = formatCurrency(currentCash);
+    } else {
+        badge.className = 'status-badge inactive';
+        badge.innerText = 'Fechado';
+        btnOpen.style.display = 'inline-flex';
+        btnClose.style.display = 'none';
+        balanceEl.innerText = '---';
+    }
 
     // 2. Render Transaction List
     const tbody = document.getElementById('tbody-transactions');
@@ -1934,9 +2037,10 @@ function renderFinance() {
         const cssClass = t.type === 'income' ? 'text-success' : 'text-danger';
         
         const profName = t.profId ? (data.professionals.find(p => p.id === t.profId)?.name || 'Desconhecido') : 'Barbearia (Geral)';
+        const pendingBadge = t.status === 'pending' ? ' <span class="status-badge pending" style="background-color: var(--warning-light); color: var(--warning); padding: 2px 6px; font-size: 0.7rem; margin-left: 5px;">Pendente</span>' : '';
         tr.innerHTML = `
             <td data-label="Data">${formatDateStringToBR(t.date)}</td>
-            <td data-label="Tipo"><span class="status-badge ${t.type === 'income' ? 'done' : 'no_show'}">${t.type === 'income' ? 'Entrada' : 'Saída'}</span></td>
+            <td data-label="Tipo"><span class="status-badge ${t.type === 'income' ? 'done' : 'no_show'}">${t.type === 'income' ? 'Entrada' : 'Saída'}</span>${pendingBadge}</td>
             <td data-label="Descrição">${t.description}</td>
             <td data-label="Profissional">${profName}</td>
             <td data-label="Categoria">${t.category}</td>
@@ -2107,14 +2211,22 @@ document.getElementById('form-transaction').addEventListener('submit', (e) => {
     const paymentMethod = document.getElementById('trans-method').value;
     const profId = document.getElementById('trans-profId') ? document.getElementById('trans-profId').value : '';
 
+    const activeRegister = window.getCurrentCashRegister ? window.getCurrentCashRegister() : null;
+    let status = 'completed';
+    if (!activeRegister && paymentMethod === 'dinheiro') {
+        status = 'pending';
+        showToast("Caixa fechado! Lançamento pendente.", "warning");
+    } else {
+        showToast("Transação registrada!", "success");
+    }
+
     const newTrans = {
         id: 'tr-' + Date.now(),
-        type, amount, date, description, category, paymentMethod, profId
+        type, amount, date, description, category, paymentMethod, profId, status
     };
 
     data.transactions.push(newTrans);
     saveData(STATE_KEYS.TRANSACTIONS, data.transactions);
-    showToast("Transação registrada!", "success");
     closeModal('modal-transaction');
     renderFinance();
 });
@@ -3545,3 +3657,73 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+// --- CASH REGISTER LOGIC ---
+window.getCurrentCashRegister = function() {
+    return data.cashRegisters.find(cr => cr.status === 'open');
+};
+
+document.getElementById('form-open-register').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (window.getCurrentCashRegister()) {
+        showToast("O caixa já está aberto!", "error");
+        return;
+    }
+    const initial = parseFloat(document.getElementById('register-initial-cash').value) || 0;
+    
+    const newReg = {
+        id: 'cr-' + Date.now(),
+        dateOpened: new Date().toISOString(),
+        dateClosed: null,
+        initialCash: initial,
+        finalCash: 0,
+        status: 'open'
+    };
+    
+    data.cashRegisters.push(newReg);
+    saveData(STATE_KEYS.CASH_REGISTERS, data.cashRegisters);
+
+    // Auto-confirm pending cash transactions
+    let confirmedCount = 0;
+    data.transactions.forEach(t => {
+        if (t.status === 'pending' && t.paymentMethod === 'dinheiro') {
+            t.status = 'completed';
+            confirmedCount++;
+        }
+    });
+    if (confirmedCount > 0) {
+        saveData(STATE_KEYS.TRANSACTIONS, data.transactions);
+        showToast(`Caixa aberto! ${confirmedCount} transações pendentes foram confirmadas.`, "success");
+    } else {
+        showToast("Caixa aberto com sucesso!", "success");
+    }
+    
+    closeModal('modal-open-register');
+    renderFinance();
+});
+
+window.closeCashRegister = function() {
+    const active = window.getCurrentCashRegister();
+    if (!active) {
+        showToast("Não há caixa aberto.", "error");
+        return;
+    }
+    
+    if (confirm("Tem certeza que deseja fechar o caixa do dia?")) {
+        active.dateClosed = new Date().toISOString();
+        active.status = 'closed';
+        
+        const start = active.dateOpened;
+        const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10));
+        let currentCash = parseFloat(active.initialCash || 0);
+        cashTrans.forEach(t => {
+            if (t.type === 'income') currentCash += t.amount;
+            else currentCash -= t.amount;
+        });
+        active.finalCash = currentCash;
+
+        saveData(STATE_KEYS.CASH_REGISTERS, data.cashRegisters);
+        showToast("Caixa fechado com sucesso!", "success");
+        renderFinance();
+    }
+};
