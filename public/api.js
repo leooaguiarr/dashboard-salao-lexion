@@ -259,6 +259,19 @@ const DataService = {
         if (!supabaseClient) return null;
         const { data, error } = await supabaseClient.rpc('get_public_salon', { p_slug: slug });
         if (error) throw error;
+        
+        // Fallback for older SQL schemas that don't return avatarUrl in the RPC:
+        if (data && data.businessInfo && !data.businessInfo.avatarUrl) {
+            try {
+                const { data: bizData } = await supabaseClient.from('business_info').select('avatarUrl').eq('slug', slug).single();
+                if (bizData && bizData.avatarUrl) {
+                    data.businessInfo.avatarUrl = bizData.avatarUrl;
+                }
+            } catch (e) {
+                console.warn('Não foi possível buscar a avatarUrl separadamente', e);
+            }
+        }
+        
         return data;
     },
 
