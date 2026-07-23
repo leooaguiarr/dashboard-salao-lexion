@@ -78,8 +78,7 @@ const DataService = {
                 supabaseClient.from('appointments').select('*'),
                 supabaseClient.from('leads').select('*'),
                 supabaseClient.from('transactions').select('*'),
-                supabaseClient.from('business_info').select('*').limit(1),
-                supabaseClient.from('cash_registers').select('*')
+                supabaseClient.from('business_info').select('*').limit(1)
             ]);
 
             // Erros do Supabase não são exceções: vêm no campo .error de
@@ -90,8 +89,23 @@ const DataService = {
                 window.showToast?.("Erro ao carregar dados da nuvem: " + failed.error.message, "danger");
             }
 
-            const [services, professionals, clients, appointments, leads, transactions, businessInfoArr, cashRegisters] =
+            const [services, professionals, clients, appointments, leads, transactions, businessInfoArr] =
                 results.map(r => r.data);
+
+            // cash_registers pode não existir ainda no Supabase — consulta separada com fallback seguro
+            let cashRegisters = [];
+            try {
+                const crResult = await supabaseClient.from('cash_registers').select('*');
+                if (!crResult.error) {
+                    cashRegisters = crResult.data || [];
+                } else {
+                    console.warn("Tabela cash_registers não encontrada no Supabase, usando localStorage:", crResult.error.message);
+                    cashRegisters = JSON.parse(localStorage.getItem(keys.CASH_REGISTERS)) || [];
+                }
+            } catch (e) {
+                console.warn("Erro ao buscar cash_registers, usando localStorage:", e);
+                cashRegisters = JSON.parse(localStorage.getItem(keys.CASH_REGISTERS)) || [];
+            }
 
             return {
                 services: services || [],
@@ -100,7 +114,7 @@ const DataService = {
                 appointments: appointments || [],
                 leads: leads || [],
                 transactions: transactions || [],
-                cashRegisters: cashRegisters || [],
+                cashRegisters: cashRegisters,
                 businessInfo: (businessInfoArr && businessInfoArr[0]) || {},
                 automationRules: JSON.parse(localStorage.getItem(keys.AUTOMATION_RULES)) || [],
                 messageJobs: JSON.parse(localStorage.getItem(keys.MESSAGE_JOBS)) || []
