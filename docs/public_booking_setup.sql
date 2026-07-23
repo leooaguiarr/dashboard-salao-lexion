@@ -84,7 +84,8 @@ BEGIN
     RETURN jsonb_build_object(
         'businessInfo', jsonb_build_object(
             'name', v_biz.name, 'slug', v_biz.slug, 'phone', v_biz.phone,
-            'instagram', v_biz.instagram, 'address', v_biz.address
+            'instagram', v_biz.instagram, 'address', v_biz.address,
+            'avatarUrl', v_biz."avatarUrl"
         ),
         'services', COALESCE((
             SELECT jsonb_agg(jsonb_build_object(
