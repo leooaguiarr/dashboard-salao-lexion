@@ -1218,10 +1218,18 @@ body {
     color: var(--primary);
 }
 
-/* Finance Page Styles */
 .finance-grid {
-    display: flex;
-    gap: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+@media (max-width: 992px) {
+    .finance-grid {
+        grid-template-columns: 1fr;
+    }
+    .finance-grid > .dashboard-panel {
+        grid-column: span 1 !important;
+    }
 }
 
 .table-container-embedded {
