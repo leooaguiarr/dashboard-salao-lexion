@@ -1984,8 +1984,9 @@ function renderFinance() {
         profitEl.className = 'metric-value text-danger';
     }
 
-    document.getElementById('fin-ticket-medio').innerText = formatCurrency(ticketMedio);
-    
+    if (document.getElementById('fin-ticket-medio')) {
+        document.getElementById('fin-ticket-medio').innerText = formatCurrency(ticketMedio);
+    }    
     // === Caixa do Dia: Dynamic Info Blocks ===
     const todayStr = getLocalDateString(new Date());
     const infoGeral = document.getElementById('cash-info-geral');
