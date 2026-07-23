@@ -1226,13 +1226,19 @@ function openEditAppointment(apptId, mode = 'edit') {
     document.getElementById('appt-create-fields-secondary').style.display = 'none';
     document.getElementById('appt-readonly-summary').style.display = 'block';
     
-    document.getElementById('appt-edit-actions').style.display = 'flex';
-    document.getElementById('appt-edit-time-fields').style.display = 'none';
-    document.getElementById('appt-edit-payment-fields').style.display = 'none';
-    
-    // Mostra os dois botões novamente caso tenham sido ocultados anteriormente
-    const actionBtns = document.querySelectorAll('#appt-edit-actions button');
-    actionBtns.forEach(btn => btn.style.display = 'flex');
+    if (mode === 'pay') {
+        document.getElementById('appt-edit-actions').style.display = 'none';
+        document.getElementById('appt-edit-time-fields').style.display = 'none';
+        document.getElementById('appt-edit-payment-fields').style.display = 'block';
+    } else {
+        document.getElementById('appt-edit-actions').style.display = 'flex';
+        document.getElementById('appt-edit-time-fields').style.display = 'none';
+        document.getElementById('appt-edit-payment-fields').style.display = 'none';
+        
+        // Mostra os dois botões novamente caso tenham sido ocultados anteriormente
+        const actionBtns = document.querySelectorAll('#appt-edit-actions button');
+        actionBtns.forEach(btn => btn.style.display = 'flex');
+    }
     
     const client = data.clients.find(c => c.id === appt.clientId);
     const service = data.services.find(s => s.id === appt.serviceId);
