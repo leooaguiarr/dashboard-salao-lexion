@@ -3708,22 +3708,90 @@ window.closeCashRegister = function() {
         showToast("Não há caixa aberto.", "error");
         return;
     }
-    
-    if (confirm("Tem certeza que deseja fechar o caixa do dia?")) {
-        active.dateClosed = new Date().toISOString();
-        active.status = 'closed';
-        
-        const start = active.dateOpened;
-        const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10));
-        let currentCash = parseFloat(active.initialCash || 0);
-        cashTrans.forEach(t => {
-            if (t.type === 'income') currentCash += t.amount;
-            else currentCash -= t.amount;
-        });
-        active.finalCash = currentCash;
 
-        saveData(STATE_KEYS.CASH_REGISTERS, data.cashRegisters);
-        showToast("Caixa fechado com sucesso!", "success");
-        renderFinance();
+    const todayStr = getLocalDateString(new Date());
+
+    // Find unpaid appointments for today
+    const unpaidToday = data.appointments.filter(a =>
+        a.date === todayStr &&
+        a.status !== 'cancelled' &&
+        a.status !== 'no_show' &&
+        a.paymentStatus !== 'paid' &&
+        a.paymentStatus !== 'free'
+    );
+
+    // Populate the pending list
+    const pendingListEl = document.getElementById('close-register-pending-list');
+    if (unpaidToday.length > 0) {
+        let listHTML = `
+            <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 10px; padding: 12px;">
+                <p style="color: #e74c3c; font-weight: 700; margin-bottom: 10px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Atenção! ${unpaidToday.length} agendamento(s) de hoje sem pagamento confirmado:
+                </p>
+                <div style="max-height: 180px; overflow-y: auto;">`;
+        unpaidToday.forEach(a => {
+            const client = data.clients.find(c => c.id === a.clientId);
+            const service = data.services.find(s => s.id === a.serviceId);
+            const prof = data.professionals.find(p => p.id === a.profId);
+            listHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div>
+                        <strong style="color: var(--text-primary);">${client ? client.name : 'Cliente'}</strong>
+                        <br><small style="color: var(--text-muted);">${a.time} - ${service ? service.name : 'Serviço'}${prof ? ' (' + prof.name.split(' ')[0] + ')' : ''}</small>
+                    </div>
+                    <span style="color: var(--warning); font-weight: 600;">${formatCurrency(service ? service.price : 0)}</span>
+                </div>`;
+        });
+        listHTML += `</div></div>`;
+        pendingListEl.innerHTML = listHTML;
+    } else {
+        pendingListEl.innerHTML = `
+            <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); border-radius: 10px; padding: 12px; text-align: center;">
+                <i class="fa-solid fa-check-circle" style="color: #2ecc71; font-size: 1.5rem; margin-bottom: 5px;"></i>
+                <p style="color: #2ecc71; font-weight: 600; margin: 0;">Todos os pagamentos do dia estão confirmados!</p>
+            </div>`;
     }
+
+    // Populate the cash summary
+    const start = active.dateOpened;
+    const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10));
+    let cashIn = 0, cashOut = 0;
+    cashTrans.forEach(t => {
+        if (t.type === 'income') cashIn += t.amount;
+        else cashOut += t.amount;
+    });
+    const initialCash = parseFloat(active.initialCash || 0);
+    const finalCash = initialCash + cashIn - cashOut;
+
+    document.getElementById('close-reg-initial').innerText = formatCurrency(initialCash);
+    document.getElementById('close-reg-cash-in').innerText = formatCurrency(cashIn);
+    document.getElementById('close-reg-cash-out').innerText = formatCurrency(cashOut);
+    document.getElementById('close-reg-final').innerText = formatCurrency(finalCash);
+
+    openModal('modal-close-register');
 };
+
+// Confirm close register button
+document.getElementById('btn-confirm-close-register').addEventListener('click', () => {
+    const active = window.getCurrentCashRegister();
+    if (!active) return;
+
+    active.dateClosed = new Date().toISOString();
+    active.status = 'closed';
+
+    const start = active.dateOpened;
+    const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10));
+    let currentCash = parseFloat(active.initialCash || 0);
+    cashTrans.forEach(t => {
+        if (t.type === 'income') currentCash += t.amount;
+        else currentCash -= t.amount;
+    });
+    active.finalCash = currentCash;
+
+    saveData(STATE_KEYS.CASH_REGISTERS, data.cashRegisters);
+    showToast("Caixa fechado com sucesso!", "success");
+    closeModal('modal-close-register');
+    renderFinance();
+});
+
