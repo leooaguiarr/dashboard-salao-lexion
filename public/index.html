@@ -524,16 +524,43 @@
                             <h4 class="panel-title"><i class="fa-solid fa-cash-register"></i> Caixa do Dia</h4>
                             <span id="cash-register-status-badge" class="status-badge inactive">Fechado</span>
                         </div>
-                        <div class="panel-body" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 200px;">
-                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">Saldo em Gaveta (Dinheiro)</p>
-                                <h2 id="cash-register-balance" style="font-size: 2rem; color: var(--text-primary);">R$ 0,00</h2>
+                        <div class="panel-body" style="display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap;">
+                            <!-- Saldo em Gaveta (always visible) -->
+                            <div style="flex: 1; min-width: 150px; background: var(--bg-tertiary); border-radius: 10px; padding: 15px;">
+                                <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;"><i class="fa-solid fa-vault"></i> Saldo em Gaveta</p>
+                                <h2 id="cash-register-balance" style="font-size: 1.8rem; color: var(--text-primary);">R$ 0,00</h2>
                             </div>
-                            <div style="flex: 1; min-width: 200px;" id="cash-register-commission-block">
-                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">Comissões (Período)</p>
-                                <h2 id="cash-register-commission" style="font-size: 1.5rem; color: var(--warning);">R$ 0,00</h2>
+
+                            <!-- GERAL: Projeção Faturamento + Gastos do Dia -->
+                            <div id="cash-info-geral" style="display: flex; gap: 15px; flex: 2; min-width: 250px;">
+                                <div style="flex: 1; background: var(--bg-tertiary); border-radius: 10px; padding: 15px;">
+                                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;"><i class="fa-solid fa-chart-line text-green"></i> Projeção Faturamento Hoje</p>
+                                    <h3 id="cash-proj-revenue" style="font-size: 1.4rem; color: var(--success);">R$ 0,00</h3>
+                                </div>
+                                <div style="flex: 1; background: var(--bg-tertiary); border-radius: 10px; padding: 15px;">
+                                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;"><i class="fa-solid fa-arrow-down text-red"></i> Gastos do Dia</p>
+                                    <h3 id="cash-day-expenses" style="font-size: 1.4rem; color: var(--danger);">R$ 0,00</h3>
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 10px;" id="cash-register-actions">
+
+                            <!-- PROFISSIONAL: Comissão Dia + Agendamentos + Comissão Mês -->
+                            <div id="cash-info-prof" style="display: none; gap: 15px; flex: 3; min-width: 300px;">
+                                <div style="flex: 1; background: var(--bg-tertiary); border-radius: 10px; padding: 15px;">
+                                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;"><i class="fa-solid fa-coins text-warning"></i> Comissão Hoje</p>
+                                    <h3 id="cash-prof-commission-day" style="font-size: 1.4rem; color: var(--warning);">R$ 0,00</h3>
+                                </div>
+                                <div style="flex: 1; background: var(--bg-tertiary); border-radius: 10px; padding: 15px;">
+                                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;"><i class="fa-solid fa-calendar-check text-blue"></i> Agendamentos Hoje</p>
+                                    <h3 id="cash-prof-appts-day" style="font-size: 1.4rem; color: var(--info);">0</h3>
+                                </div>
+                                <div style="flex: 1; background: var(--bg-tertiary); border-radius: 10px; padding: 15px;">
+                                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;"><i class="fa-solid fa-sack-dollar text-purple"></i> Projeção Comissão Mês</p>
+                                    <h3 id="cash-prof-commission-month" style="font-size: 1.4rem; color: var(--purple);">R$ 0,00</h3>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 10px; align-items: center;" id="cash-register-actions">
                                 <button class="btn btn-primary" id="btn-open-register" onclick="openModal('modal-open-register')"><i class="fa-solid fa-lock-open"></i> Abrir Caixa</button>
                                 <button class="btn btn-danger" id="btn-close-register" style="display: none;" onclick="window.closeCashRegister()"><i class="fa-solid fa-lock"></i> Fechar Caixa</button>
                             </div>

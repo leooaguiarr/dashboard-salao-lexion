@@ -1987,11 +1987,69 @@ function renderFinance() {
 
     document.getElementById('fin-ticket-medio').innerText = formatCurrency(ticketMedio);
     
-    // Update Commissions
+    // === Caixa do Dia: Dynamic Info Blocks ===
+    const todayStr = getLocalDateString(new Date());
+    const infoGeral = document.getElementById('cash-info-geral');
+    const infoProf = document.getElementById('cash-info-prof');
+
     if (currentFinanceProfId === 'all') {
-        document.getElementById('cash-register-commission').innerText = `R$ 0,00 (Selecione)`;
+        // GERAL: show projections + expenses
+        infoGeral.style.display = 'flex';
+        infoProf.style.display = 'none';
+
+        // Daily revenue projection: sum of all services for today's appointments (not cancelled/no_show)
+        let projRevenue = 0;
+        data.appointments.filter(a => a.date === todayStr && a.status !== 'cancelled' && a.status !== 'no_show').forEach(a => {
+            const srv = data.services.find(s => s.id === a.serviceId);
+            if (srv) projRevenue += srv.price;
+        });
+        document.getElementById('cash-proj-revenue').innerText = formatCurrency(projRevenue);
+
+        // Daily expenses: sum of today's expense transactions
+        let dayExpenses = 0;
+        data.transactions.filter(t => t.type === 'expense' && t.date === todayStr).forEach(t => {
+            dayExpenses += t.amount;
+        });
+        document.getElementById('cash-day-expenses').innerText = formatCurrency(dayExpenses);
+
     } else {
-        document.getElementById('cash-register-commission').innerHTML = `${formatCurrency(totalCommission)} <br><span style="font-size:0.8rem;color:var(--text-muted);">+ ${formatCurrency(forecastedCommission)} previsto</span>`;
+        // PROFISSIONAL: show commission day + appts + commission month
+        infoGeral.style.display = 'none';
+        infoProf.style.display = 'flex';
+
+        const prof = data.professionals.find(p => p.id === currentFinanceProfId);
+        const commissionRate = prof && prof.commission ? prof.commission / 100 : 0;
+
+        // Daily commission projection (all today's appointments for this prof)
+        let profDayCommission = 0;
+        const profTodayAppts = data.appointments.filter(a => 
+            a.date === todayStr && 
+            a.profId === currentFinanceProfId && 
+            a.status !== 'cancelled' && 
+            a.status !== 'no_show'
+        );
+        profTodayAppts.forEach(a => {
+            const srv = data.services.find(s => s.id === a.serviceId);
+            if (srv) profDayCommission += srv.price * commissionRate;
+        });
+        document.getElementById('cash-prof-commission-day').innerText = formatCurrency(profDayCommission);
+
+        // Appointments count today
+        document.getElementById('cash-prof-appts-day').innerText = profTodayAppts.length;
+
+        // Monthly commission projection (all appointments this month for this prof)
+        const monthStart = todayStr.substring(0, 7); // 'YYYY-MM'
+        let profMonthCommission = 0;
+        data.appointments.filter(a => 
+            a.date.startsWith(monthStart) && 
+            a.profId === currentFinanceProfId && 
+            a.status !== 'cancelled' && 
+            a.status !== 'no_show'
+        ).forEach(a => {
+            const srv = data.services.find(s => s.id === a.serviceId);
+            if (srv) profMonthCommission += srv.price * commissionRate;
+        });
+        document.getElementById('cash-prof-commission-month').innerText = formatCurrency(profMonthCommission);
     }
 
     // Cash Register display logic
@@ -2009,7 +2067,7 @@ function renderFinance() {
         
         // Calculate current balance
         const start = activeRegister.dateOpened;
-        const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10)); // approximate by date string
+        const cashTrans = data.transactions.filter(t => t.paymentMethod === 'dinheiro' && t.date >= start.substring(0, 10));
         let currentCash = parseFloat(activeRegister.initialCash || 0);
         cashTrans.forEach(t => {
             if (t.type === 'income') currentCash += t.amount;
