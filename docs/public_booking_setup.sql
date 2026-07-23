@@ -233,9 +233,65 @@ END;
 $$;
 
 -- ------------------------------------------------------------
--- 5. Permissões: as funções podem ser chamadas sem login (anon)
+-- 5. FUNÇÃO PÚBLICA: Checar se o cliente já tem agendamento na semana
+-- Retorna os agendamentos existentes do telefone na mesma semana ISO
+-- para que o frontend exiba um aviso (sem bloquear).
+-- ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION check_week_appointments(p_slug text, p_phone text, p_date text)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_user_id uuid;
+    v_client_id text;
+    v_target_date date;
+    v_week_start date;
+    v_week_end date;
+    v_result jsonb;
+BEGIN
+    SELECT user_id INTO v_user_id FROM business_info
+    WHERE slug = p_slug ORDER BY created_at DESC LIMIT 1;
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('hasAppointments', false);
+    END IF;
+
+    SELECT id INTO v_client_id FROM clients
+    WHERE user_id = v_user_id AND phone = p_phone LIMIT 1;
+    IF v_client_id IS NULL THEN
+        RETURN jsonb_build_object('hasAppointments', false);
+    END IF;
+
+    v_target_date := p_date::date;
+    v_week_start := v_target_date - (extract(isodow FROM v_target_date)::int - 1);
+    v_week_end := v_week_start + 6;
+
+    SELECT COALESCE(jsonb_agg(jsonb_build_object(
+        'date', a.date, 'time', a.time, 'serviceId', a."serviceId"
+    )), '[]'::jsonb)
+    INTO v_result
+    FROM appointments a
+    WHERE a.user_id = v_user_id
+      AND a."clientId" = v_client_id
+      AND a.status IS DISTINCT FROM 'cancelled'
+      AND a.date::date BETWEEN v_week_start AND v_week_end;
+
+    RETURN jsonb_build_object(
+        'hasAppointments', jsonb_array_length(v_result) > 0,
+        'appointments', v_result
+    );
+END;
+$$;
+
+-- ------------------------------------------------------------
+-- 6. Permissões: as funções podem ser chamadas sem login (anon)
 -- ------------------------------------------------------------
 REVOKE ALL ON FUNCTION get_public_salon(text) FROM public;
 REVOKE ALL ON FUNCTION create_public_booking(text, text, text, text, text, text, text) FROM public;
+REVOKE ALL ON FUNCTION check_client_exists(text, text) FROM public;
+REVOKE ALL ON FUNCTION check_week_appointments(text, text, text) FROM public;
 GRANT EXECUTE ON FUNCTION get_public_salon(text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION create_public_booking(text, text, text, text, text, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION check_client_exists(text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION check_week_appointments(text, text, text) TO anon, authenticated;

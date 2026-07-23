@@ -950,6 +950,31 @@ function renderAgenda() {
         return;
     }
 
+    // Detecta clientes com múltiplos agendamentos na mesma semana (duplicata)
+    const selectedDateObj = typeof currentSelectedDate === 'string' ? new Date(currentSelectedDate + 'T12:00:00') : currentSelectedDate;
+    const dayOfWeek = selectedDateObj.getDay(); // 0=Sun
+    const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+    const weekStart = new Date(selectedDateObj);
+    weekStart.setDate(selectedDateObj.getDate() - (isoDay - 1));
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    const weekStartStr = getLocalDateString(weekStart);
+    const weekEndStr = getLocalDateString(weekEnd);
+
+    const weekAppointments = data.appointments.filter(a =>
+        a.status !== 'cancelled' && a.clientId && a.date >= weekStartStr && a.date <= weekEndStr
+    );
+    // Conta agendamentos por clientId na semana
+    const clientWeekCount = {};
+    weekAppointments.forEach(a => {
+        clientWeekCount[a.clientId] = (clientWeekCount[a.clientId] || 0) + 1;
+    });
+    // Set de clientIds com 2+ agendamentos na semana
+    const duplicateWeekClients = new Set();
+    Object.entries(clientWeekCount).forEach(([cid, count]) => {
+        if (count >= 2) duplicateWeekClients.add(cid);
+    });
+
     activeProfs.forEach(prof => {
         // 1. Render column header
         const colHeader = document.createElement('div');
@@ -1049,6 +1074,13 @@ function renderAgenda() {
             if (topPosition >= 0 && topPosition < 600) {
                 const eventEl = document.createElement('div');
                 eventEl.className = `calendar-appt-event ${ev.appt.status}`;
+                
+                // Marca visualmente se o cliente tem 2+ agendamentos na semana
+                const isDuplicateWeek = ev.appt.clientId && duplicateWeekClients.has(ev.appt.clientId);
+                if (isDuplicateWeek) {
+                    eventEl.classList.add('duplicate-week-appt');
+                }
+                
                 eventEl.style.top = `${topPosition}px`;
                 eventEl.style.height = `${ev.duration}px`;
                 
@@ -1056,10 +1088,14 @@ function renderAgenda() {
                 eventEl.style.left = `calc(${ev.left}% + 3px)`;
                 eventEl.style.right = 'auto'; // override CSS default right:4px
                 
+                const duplicateBadge = isDuplicateWeek 
+                    ? `<span class="duplicate-week-badge" title="Cliente com ${clientWeekCount[ev.appt.clientId]} agendamentos nesta semana"><i class="fa-solid fa-clone"></i></span>`
+                    : '';
+                
                 eventEl.innerHTML = `
                     <div style="padding-right: 20px; overflow: hidden;">
                         <div class="event-title" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
-                            ${escapeHTML(ev.client.name)}
+                            ${duplicateBadge}${escapeHTML(ev.client.name)}
                         </div>
                         <div class="event-desc" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; opacity: 0.9;">
                             ${escapeHTML(ev.service.name)}
@@ -3110,6 +3146,68 @@ window.submitSimBooking = async function(event) {
         const originalBtn = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Confirmando...';
+
+        // Checa se o cliente já tem agendamento na mesma semana (aviso, não bloqueio)
+        if (!simSelection._weekWarningDismissed) {
+            try {
+                const weekCheck = await DataService.checkWeekAppointments(publicSlug, phone, simSelection.date);
+                if (weekCheck && weekCheck.hasAppointments) {
+                    const existingAppts = weekCheck.appointments || [];
+                    const apptListHtml = existingAppts.map(a => {
+                        const srv = data.services.find(s => s.id === a.serviceId);
+                        return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <span>${formatDateStringToBR(a.date)}</span>
+                            <span>${a.time}h</span>
+                            <span style="color:var(--primary);">${srv ? escapeHTML(srv.name) : 'Serviço'}</span>
+                        </div>`;
+                    }).join('');
+
+                    // Show warning popup
+                    const overlay = document.createElement('div');
+                    overlay.id = 'pub-week-warning-overlay';
+                    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;';
+                    overlay.innerHTML = `
+                        <div style="background:var(--bg-secondary, #1e293b); border-radius:16px; padding:24px; max-width:380px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.5); border:1px solid rgba(139,92,246,0.3);">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <i class="fa-solid fa-calendar-check" style="font-size:36px; color:var(--warning, #f59e0b);"></i>
+                            </div>
+                            <h4 style="color:white; text-align:center; font-size:16px; margin-bottom:8px;">Você já tem agendamento nesta semana!</h4>
+                            <p style="color:#94a3b8; text-align:center; font-size:13px; margin-bottom:16px;">
+                                Identificamos que você já possui ${existingAppts.length === 1 ? 'um horário reservado' : existingAppts.length + ' horários reservados'} nesta mesma semana:
+                            </p>
+                            <div style="background:rgba(0,0,0,0.2); border-radius:10px; padding:10px 14px; margin-bottom:18px; font-size:13px; color:#cbd5e1;">
+                                ${apptListHtml}
+                            </div>
+                            <p style="color:#94a3b8; text-align:center; font-size:12px; margin-bottom:18px;">
+                                Deseja continuar mesmo assim?
+                            </p>
+                            <div style="display:flex; gap:10px;">
+                                <button id="pub-week-warn-back" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:#94a3b8; font-weight:600; cursor:pointer; font-size:14px;">Voltar</button>
+                                <button id="pub-week-warn-continue" style="flex:1; padding:12px; border-radius:10px; border:none; background:linear-gradient(135deg, var(--primary, #8b5cf6), var(--info, #6366f1)); color:white; font-weight:600; cursor:pointer; font-size:14px;">Sim, Agendar</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    document.getElementById('pub-week-warn-back').addEventListener('click', () => {
+                        overlay.remove();
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtn;
+                    });
+                    document.getElementById('pub-week-warn-continue').addEventListener('click', () => {
+                        overlay.remove();
+                        simSelection._weekWarningDismissed = true;
+                        submitSimBooking(event);
+                    });
+                    return;
+                }
+            } catch (e) {
+                console.warn("Falha ao checar semana duplicada:", e);
+            }
+        }
+        // Limpa flag para próximos agendamentos
+        simSelection._weekWarningDismissed = false;
+
         try {
             const result = await DataService.createPublicBooking(publicSlug, {
                 name: name,

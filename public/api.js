@@ -286,6 +286,25 @@ const DataService = {
         return data;
     },
 
+    // Checa se o cliente (pelo telefone) já tem agendamento na mesma semana.
+    // Retorna { hasAppointments: bool, appointments: [] }
+    async checkWeekAppointments(slug, phone, date) {
+        if (!supabaseClient) return { hasAppointments: false };
+        try {
+            const { data, error } = await supabaseClient.rpc('check_week_appointments', {
+                p_slug: slug, p_phone: phone, p_date: date
+            });
+            if (error) {
+                console.warn("Erro ao checar agendamentos da semana:", error);
+                return { hasAppointments: false };
+            }
+            return data || { hasAppointments: false };
+        } catch (e) {
+            console.warn("check_week_appointments não disponível:", e);
+            return { hasAppointments: false };
+        }
+    },
+
     // Grava cliente + agendamento + lead na conta do salão dono do slug.
     // Retorna { ok: true, appointmentId, profId } ou { ok: false, error }
     async createPublicBooking(slug, booking) {

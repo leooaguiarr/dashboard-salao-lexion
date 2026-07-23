@@ -1021,6 +1021,28 @@ body {
 .calendar-appt-event.no_show { background-color: var(--danger-light); border-left-color: var(--danger); color: #fca5a5; }
 .calendar-appt-event.cancelled { background-color: var(--gray-light); border-left-color: var(--gray); color: #cbd5e1; }
 
+/* Destaque para clientes com 2+ agendamentos na mesma semana */
+.calendar-appt-event.duplicate-week-appt {
+    border-left-color: #f59e0b !important;
+    border-left-width: 5px !important;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.25), inset 0 0 0 1px rgba(245, 158, 11, 0.15);
+}
+
+.duplicate-week-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: rgba(245, 158, 11, 0.25);
+    color: #f59e0b;
+    font-size: 8px;
+    margin-right: 4px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
 .calendar-appt-event .comm-badge {
     top: 4px;
     right: 4px;
