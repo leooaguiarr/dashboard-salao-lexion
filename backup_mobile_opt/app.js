@@ -131,7 +131,6 @@ function initMockDatabase() {
             phone: '(11) 99999-8888',
             instagram: 'barbearia.lexion',
             whatsappRecallMessage: 'Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...',
-            whatsappBookingMessage: 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}',
             address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
             hours: {
                 weekdays: { start: '09:00', end: '19:00' },
@@ -198,11 +197,6 @@ async function loadData() {
     data.leads = sanitizeForStorage(loaded.leads);
     data.transactions = sanitizeForStorage(loaded.transactions);
     data.businessInfo = sanitizeForStorage(loaded.businessInfo);
-    // Campos que existem apenas no localStorage (não têm coluna no Supabase)
-    const localBiz = JSON.parse(localStorage.getItem(STATE_KEYS.BUSINESS_INFO) || '{}');
-    if (!data.businessInfo.whatsappBookingMessage && localBiz.whatsappBookingMessage) {
-        data.businessInfo.whatsappBookingMessage = localBiz.whatsappBookingMessage;
-    }
     data.automationRules = sanitizeForStorage(loaded.automationRules);
     data.messageJobs = sanitizeForStorage(loaded.messageJobs);
 }
@@ -741,91 +735,6 @@ function renderDashboard() {
                     </button>
                 `;
                 pendingList.appendChild(card);
-            });
-        }
-    }
-
-    // 3.8 Render Birthdays
-    const birthdaysList = document.getElementById('dash-birthdays-list');
-    if (birthdaysList) {
-        birthdaysList.innerHTML = '';
-        
-        const today = new Date();
-        const currentMonth = today.getMonth() + 1;
-        const currentDay = today.getDate();
-
-        // Calculate upcoming birthdays (next 7 days)
-        const upcomingBirthdays = data.clients.filter(client => {
-            if (!client.birth) return false;
-            // birth format: YYYY-MM-DD
-            const parts = client.birth.split('-');
-            if (parts.length !== 3) return false;
-            
-            const birthMonth = parseInt(parts[1], 10);
-            const birthDay = parseInt(parts[2], 10);
-            
-            // Check if birthday is today or within next 7 days (ignoring year)
-            const clientDate = new Date(today.getFullYear(), birthMonth - 1, birthDay);
-            const diffTime = clientDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            // If birthday already passed this year, check next year
-            if (diffDays < 0) {
-                const nextYearDate = new Date(today.getFullYear() + 1, birthMonth - 1, birthDay);
-                const nextDiffTime = nextYearDate - today;
-                const nextDiffDays = Math.ceil(nextDiffTime / (1000 * 60 * 60 * 24));
-                return nextDiffDays >= 0 && nextDiffDays <= 7;
-            }
-            
-            return diffDays >= 0 && diffDays <= 7;
-        });
-
-        // Sort by how close they are
-        upcomingBirthdays.sort((a, b) => {
-            const getDiff = (client) => {
-                const parts = client.birth.split('-');
-                let cDate = new Date(today.getFullYear(), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-                if (cDate < today) cDate.setFullYear(today.getFullYear() + 1);
-                return cDate - today;
-            };
-            return getDiff(a) - getDiff(b);
-        });
-
-        if (upcomingBirthdays.length === 0) {
-            birthdaysList.innerHTML = `
-                <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 15px;">
-                    Nenhum cliente faz aniversário nos próximos 7 dias.
-                </div>
-            `;
-        } else {
-            upcomingBirthdays.forEach(client => {
-                const parts = client.birth.split('-');
-                const bDay = parseInt(parts[2], 10);
-                const bMonth = parseInt(parts[1], 10);
-                
-                let dayText = `${bDay}/${bMonth < 10 ? '0'+bMonth : bMonth}`;
-                if (bMonth === currentMonth && bDay === currentDay) {
-                    dayText = 'Hoje! 🎈';
-                } else if (bMonth === currentMonth && bDay === currentDay + 1) {
-                    dayText = 'Amanhã';
-                }
-
-                // Default WhatsApp Message
-                const msg = encodeURIComponent(`Olá ${client.name.split(' ')[0]}! A equipe do ${data.businessInfo.name} quer te desejar um Feliz Aniversário! 🎉 Que seu dia seja muito especial.`);
-
-                const card = document.createElement('div');
-                card.className = 'crm-alert-card';
-                card.style.borderLeftColor = '#f43f5e'; // rose color for birthday
-                card.innerHTML = `
-                    <div class="crm-alert-text">
-                        <strong>${client.name}</strong>
-                        <span class="crm-alert-subtext">Faz aniversário: ${dayText}</span>
-                    </div>
-                    <a href="https://wa.me/${client.phone.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn btn-sm" style="background: #f43f5e; color: white;">
-                        <i class="fa-brands fa-whatsapp"></i> Parabéns
-                    </a>
-                `;
-                birthdaysList.appendChild(card);
             });
         }
     }
@@ -2169,7 +2078,7 @@ function renderConfig() {
                 <button class="btn btn-icon btn-sm" onclick="openEditProfessional('${prof.id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
             </div>
             <div class="item-config-meta">
-                <span class="item-price-tag"><i class="fa-solid fa-percent"></i> ${prof.commission || 0} Comissão</span>
+                <span></span>
                 <span class="item-status-tag ${prof.active ? 'active' : 'inactive'}">${prof.active ? 'Ativo' : 'Inativo'}</span>
             </div>
         `;
@@ -2185,10 +2094,6 @@ function renderConfig() {
     const whatsappMsgElem = document.getElementById('biz-whatsapp-msg');
     if (whatsappMsgElem) {
         whatsappMsgElem.value = data.businessInfo.whatsappRecallMessage || 'Olá {nome}! Tudo bem? Vimos que faz um tempinho que você não nos visita...';
-    }
-    const bookingMsgElem = document.getElementById('biz-whatsapp-booking-msg');
-    if (bookingMsgElem) {
-        bookingMsgElem.value = data.businessInfo.whatsappBookingMessage || 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}';
     }
 }
 
@@ -2228,10 +2133,7 @@ document.getElementById('form-business-info').addEventListener('submit', (e) => 
     const whatsappMsgElem = document.getElementById('biz-whatsapp-msg');
     const whatsappRecallMessage = whatsappMsgElem ? whatsappMsgElem.value : '';
 
-    const bookingMsgElem = document.getElementById('biz-whatsapp-booking-msg');
-    const whatsappBookingMessage = bookingMsgElem ? bookingMsgElem.value : '';
-
-    data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address, whatsappRecallMessage, whatsappBookingMessage };
+    data.businessInfo = { ...data.businessInfo, name, slug, phone, instagram, address, whatsappRecallMessage };
 
     // Update booking link label in Simulator
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(slug);
@@ -2372,7 +2274,6 @@ function openEditProfessional(id) {
     document.getElementById('prof-id').value = prof.id;
     document.getElementById('prof-name').value = prof.name;
     document.getElementById('prof-phone').value = prof.phone;
-    document.getElementById('prof-commission').value = prof.commission || '';
     document.getElementById('prof-active').checked = prof.active;
 
     document.getElementById('btn-delete-professional').style.display = 'block';
@@ -2384,15 +2285,14 @@ document.getElementById('form-professional').addEventListener('submit', (e) => {
     const id = document.getElementById('prof-id').value;
     const name = document.getElementById('prof-name').value;
     const phone = document.getElementById('prof-phone').value;
-    const commission = parseFloat(document.getElementById('prof-commission').value) || 0;
     const active = document.getElementById('prof-active').checked;
 
     if (id) {
         const idx = data.professionals.findIndex(p => p.id === id);
-        data.professionals[idx] = { id, name, phone, commission, active };
+        data.professionals[idx] = { id, name, phone, active };
         showToast("Profissional atualizado!", "success");
     } else {
-        const newProf = { id: 'prof-' + Date.now(), name, phone, commission, active };
+        const newProf = { id: 'prof-' + Date.now(), name, phone, active };
         data.professionals.push(newProf);
         showToast("Profissional cadastrado!", "success");
     }
@@ -2516,53 +2416,12 @@ document.getElementById('btn-copy-link').addEventListener('click', () => {
     });
 });
 
-// Helper: monta a mensagem de agendamento com tags dinâmicas (a partir do template salvo)
-function getBookingWhatsAppMessage() {
-    const defaultMsg = 'Bom dia, agende seu horário para hoje {dia}, não deixe pra última hora 💈 {link}';
-    let msg = data.businessInfo.whatsappBookingMessage || defaultMsg;
-    const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
-    const hoje = new Date();
-    const diaSemana = diasSemana[hoje.getDay()];
-    const bookingUrl = document.getElementById('biz-link-url').innerText;
-    msg = msg.replace(/\{dia\}/gi, diaSemana);
-    msg = msg.replace(/\{link\}/gi, bookingUrl);
-    return msg;
-}
-
-// Popula o textarea de composição com a mensagem já montada
-function populateBookingDraft() {
-    const draft = document.getElementById('booking-msg-draft');
-    if (draft) {
-        draft.value = getBookingWhatsAppMessage();
-    }
-}
-
-// Enviar via WhatsApp — pega o texto do textarea (que o profissional pode ter editado)
-document.getElementById('btn-share-whatsapp-link').addEventListener('click', () => {
-    const draft = document.getElementById('booking-msg-draft');
-    const msg = draft ? draft.value : getBookingWhatsAppMessage();
-    const encodedMsg = encodeURIComponent(msg);
-    window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
-});
-
-// Copiar mensagem do textarea para a área de transferência
-document.getElementById('btn-copy-booking-msg').addEventListener('click', () => {
-    const draft = document.getElementById('booking-msg-draft');
-    const msg = draft ? draft.value : getBookingWhatsAppMessage();
-    navigator.clipboard.writeText(msg).then(() => {
-        showToast("Mensagem copiada!", "success");
-    });
-});
-
 function initPhoneSimulator() {
     simulationStep = 1;
-    simSelection = { serviceId: '', profId: '', date: '', time: '', clientName: '', clientPhone: '', birth: '', needsBirth: false };
+    simSelection = { serviceId: '', profId: '', date: '', time: '', clientName: '', clientPhone: '' };
     
     // Update link code text
     document.getElementById('biz-link-url').innerText = getPublicBookingUrl(data.businessInfo.slug);
-    
-    // Preenche o textarea com a mensagem de agendamento montada
-    populateBookingDraft();
     
     renderPhoneScreen();
 }
@@ -2595,16 +2454,9 @@ function renderPhoneScreen() {
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
-                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" maxlength="15" required value="${escapeHTML(simSelection.clientPhone)}" ${simSelection.needsBirth ? 'readonly' : ''}>
+                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" maxlength="15" required value="${escapeHTML(simSelection.clientPhone)}">
                     </div>
-                    ${simSelection.needsBirth ? `
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label style="color:#94a3b8; font-size:10px;">SUA DATA DE NASCIMENTO:</label>
-                        <input type="date" class="pub-input" id="pub-sim-birth" required value="${escapeHTML(simSelection.birth)}">
-                        <small style="color:var(--text-muted); font-size:10px; display:block; margin-top:4px;">Para enviarmos mimos no seu aniversário! 🎁</small>
-                    </div>
-                    ` : ''}
-                    <button type="submit" class="pub-btn-submit" id="pub-btn-submit-step1">Avançar <i class="fa-solid fa-chevron-right"></i></button>
+                    <button type="submit" class="pub-btn-submit">Avançar <i class="fa-solid fa-chevron-right"></i></button>
                 </form>
             </div>
         `;
@@ -2820,45 +2672,12 @@ function renderPhoneScreen() {
 }
 
 // Phone interaction routing functions (must be global to match string HTML events)
-window.submitSimNamePhone = async function(event) {
+window.submitSimNamePhone = function(event) {
     event.preventDefault();
-    const btn = document.getElementById('pub-btn-submit-step1');
-    if(btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Aguarde...';
-    }
-
-    const name = sanitizePlainText(document.getElementById('pub-sim-name').value);
-    const phone = sanitizePlainText(document.getElementById('pub-sim-phone').value);
-    
-    simSelection.clientName = name;
-    simSelection.clientPhone = phone;
-
-    if (simSelection.needsBirth) {
-        const birthInput = document.getElementById('pub-sim-birth');
-        if (birthInput && birthInput.value) {
-            simSelection.birth = birthInput.value;
-            simulationStep = 2;
-            renderPhoneScreen();
-            return;
-        }
-    }
-
-    // Check if client exists
-    let clientExists = false;
-    if (publicSalonMode) {
-        clientExists = await DataService.checkPublicClientExists(publicSlug, phone);
-    } else {
-        clientExists = data.clients.some(c => c.phone === phone);
-    }
-
-    if (!clientExists) {
-        simSelection.needsBirth = true;
-        renderPhoneScreen();
-    } else {
-        simulationStep = 2;
-        renderPhoneScreen();
-    }
+    simSelection.clientName = sanitizePlainText(document.getElementById('pub-sim-name').value);
+    simSelection.clientPhone = sanitizePlainText(document.getElementById('pub-sim-phone').value);
+    simulationStep = 2;
+    renderPhoneScreen();
 };
 
 window.selectSimService = function(id) {
@@ -2931,8 +2750,7 @@ window.submitSimBooking = async function(event) {
                 serviceId: simSelection.serviceId,
                 profId: simSelection.profId,
                 date: simSelection.date,
-                time: simSelection.time,
-                birth: simSelection.birth
+                time: simSelection.time
             });
             if (!result || result.ok !== true) {
                 throw new Error((result && result.error) || 'Não foi possível concluir o agendamento.');
@@ -2960,7 +2778,7 @@ window.submitSimBooking = async function(event) {
             name: name,
             phone: phone,
             instagram: '',
-            birth: simSelection.birth || '',
+            birth: '',
             frequency: 30,
             lastVisit: simSelection.date,
             notes: 'Cliente cadastrado automaticamente pelo link público.'

@@ -9,7 +9,12 @@
 
 ## 📅 Últimas Modificações (Sessão de Hoje)
 
-1. **Captura de Data de Nascimento e Aniversários no Dashboard:**
+1. **Adicionado Campo de Comissão para Profissionais:**
+   - Adicionado o campo "Comissão sobre Serviço (%)" no modal de criação e edição de Profissionais em `index.html`.
+   - Atualizado o `app.js` para persistir o percentual de `commission` no objeto do profissional e exibi-lo no card do barbeiro na aba de Configurações.
+   - Isso servirá de base para futuros cálculos de repasses financeiros no Dashboard.
+
+2. **Captura de Data de Nascimento e Aniversários no Dashboard:**
    - Adicionado novo fluxo no **Agendamento Público (Simulador/Link)**: ao inserir o WhatsApp, o sistema agora checa se o cliente já existe (via RPC `check_client_exists` no Supabase ou verificação local).
    - Se o cliente for novo, um campo de "Data de Nascimento" é exibido obrigando o preenchimento para avançar.
    - Os dados são salvos na tabela `clients` com a nova coluna `birth` formatada como "YYYY-MM-DD".
