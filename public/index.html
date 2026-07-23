@@ -507,14 +507,21 @@
                 <!-- 5. FINANCEIRO PAGE -->
                 <section class="page-section" id="page-financeiro">
                     <!-- Top Controls: Timeframe and Professional Filters -->
-                    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
-                        <div class="finance-period-filters" id="finance-period-filters" style="display: flex; gap: 10px;">
-                            <button class="btn btn-secondary" id="btn-period-daily" onclick="setFinancePeriodFilter('daily')">Hoje</button>
-                            <button class="btn btn-secondary" id="btn-period-weekly" onclick="setFinancePeriodFilter('weekly')">7 Dias</button>
-                            <button class="btn btn-primary" id="btn-period-monthly" onclick="setFinancePeriodFilter('monthly')">30 Dias</button>
+                    <div class="dashboard-panel glass-effect" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 20px; padding: 15px; border-left: 4px solid var(--secondary);">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-regular fa-calendar"></i> Selecione o Período</span>
+                            <div class="finance-period-filters" id="finance-period-filters" style="display: flex; gap: 10px;">
+                                <button class="btn btn-secondary" id="btn-period-daily" onclick="setFinancePeriodFilter('daily')">Hoje</button>
+                                <button class="btn btn-secondary" id="btn-period-weekly" onclick="setFinancePeriodFilter('weekly')">7 Dias</button>
+                                <button class="btn btn-primary" id="btn-period-monthly" onclick="setFinancePeriodFilter('monthly')">30 Dias</button>
+                            </div>
                         </div>
-                        <div class="prof-filters" id="finance-prof-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; flex: 1;">
-                            <!-- Buttons populated dynamically -->
+                        
+                        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px; border-left: 1px solid var(--border-color); padding-left: 20px;" class="prof-filter-container">
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-user-tie"></i> Filtrar por Profissional</span>
+                            <div class="prof-filters" id="finance-prof-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                                <!-- Buttons populated dynamically -->
+                            </div>
                         </div>
                     </div>
 
