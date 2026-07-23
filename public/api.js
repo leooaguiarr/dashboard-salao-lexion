@@ -245,6 +245,7 @@ const DataService = {
                 }
             }
         }
+    },
 
     // -------------------------
     // LINK PÚBLICO DE AGENDAMENTO (sem login)
