@@ -78,7 +78,8 @@ const DataService = {
                 supabaseClient.from('appointments').select('*'),
                 supabaseClient.from('leads').select('*'),
                 supabaseClient.from('transactions').select('*'),
-                supabaseClient.from('business_info').select('*').limit(1)
+                supabaseClient.from('business_info').select('*').limit(1),
+                supabaseClient.from('cash_registers').select('*')
             ]);
 
             // Erros do Supabase não são exceções: vêm no campo .error de
@@ -89,7 +90,7 @@ const DataService = {
                 window.showToast?.("Erro ao carregar dados da nuvem: " + failed.error.message, "danger");
             }
 
-            const [services, professionals, clients, appointments, leads, transactions, businessInfoArr] =
+            const [services, professionals, clients, appointments, leads, transactions, businessInfoArr, cashRegisters] =
                 results.map(r => r.data);
 
             return {
@@ -99,6 +100,7 @@ const DataService = {
                 appointments: appointments || [],
                 leads: leads || [],
                 transactions: transactions || [],
+                cashRegisters: cashRegisters || [],
                 businessInfo: (businessInfoArr && businessInfoArr[0]) || {},
                 automationRules: JSON.parse(localStorage.getItem(keys.AUTOMATION_RULES)) || [],
                 messageJobs: JSON.parse(localStorage.getItem(keys.MESSAGE_JOBS)) || []
@@ -113,6 +115,7 @@ const DataService = {
                 appointments: get(keys.APPOINTMENTS) || [],
                 leads: get(keys.LEADS) || [],
                 transactions: get(keys.TRANSACTIONS) || [],
+                cashRegisters: get(keys.CASH_REGISTERS) || [],
                 businessInfo: get(keys.BUSINESS_INFO) || {},
                 automationRules: get(keys.AUTOMATION_RULES) || [],
                 messageJobs: get(keys.MESSAGE_JOBS) || []
@@ -130,7 +133,8 @@ const DataService = {
                     'lexion_appointments': 'appointments',
                     'lexion_leads': 'leads',
                     'lexion_transactions': 'transactions',
-                    'lexion_business_info': 'business_info'
+                    'lexion_business_info': 'business_info',
+                    'lexion_cash_registers': 'cash_registers'
                 };
 
                 const tableName = keyToTable[key];
