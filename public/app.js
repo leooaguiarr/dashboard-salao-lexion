@@ -2757,12 +2757,18 @@ function renderPhoneScreen() {
     phoneScreen.innerHTML = '';
     const businessName = escapeHTML(data.businessInfo.name || 'Agendamento Online');
     const businessAddress = escapeHTML(data.businessInfo.address || '');
+    
+    const firstLetter = businessName.charAt(0).toUpperCase();
+    const avatarUrl = data.businessInfo.avatarUrl || '';
+    const logoHtml = avatarUrl 
+        ? `<img src="${escapeHTML(avatarUrl)}" class="pub-logo" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); margin-bottom:10px; display:inline-block;">` 
+        : `<div class="pub-logo">${firstLetter}</div>`;
 
     // Step 1: Client contact details
     if (simulationStep === 1) {
         phoneScreen.innerHTML = `
             <div class="pub-header">
-                <div class="pub-logo">L</div>
+                ${logoHtml}
                 <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle"><i class="fa-solid fa-location-dot"></i> ${businessAddress}</p>
             </div>
@@ -2770,18 +2776,18 @@ function renderPhoneScreen() {
                 <h5 class="pub-section-title">Passo 1: Seus dados</h5>
                 <form class="pub-form" onsubmit="submitSimNamePhone(event)">
                     <div class="form-group">
-                        <label style="color:#94a3b8; font-size:10px;">SEU NOME COMPLETO:</label>
-                        <input type="text" class="pub-input" id="pub-sim-name" placeholder="Nome" required value="${escapeHTML(simSelection.clientName)}">
+                        <label style="color:#94a3b8; font-size:12px; font-weight: 500; margin-bottom: 6px; display: block;">SEU NOME COMPLETO:</label>
+                        <input type="text" class="pub-input" style="font-size: 16px; padding: 14px; height: auto;" id="pub-sim-name" placeholder="Nome" required value="${escapeHTML(simSelection.clientName)}">
                     </div>
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label style="color:#94a3b8; font-size:10px;">SEU WHATSAPP:</label>
-                        <input type="text" class="pub-input" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" maxlength="15" required value="${escapeHTML(simSelection.clientPhone)}" ${simSelection.needsBirth ? 'readonly' : ''}>
+                    <div class="form-group" style="margin-bottom:18px;">
+                        <label style="color:#94a3b8; font-size:12px; font-weight: 500; margin-bottom: 6px; display: block;">SEU WHATSAPP:</label>
+                        <input type="text" class="pub-input" style="font-size: 16px; padding: 14px; height: auto;" id="pub-sim-phone" placeholder="Ex: (11) 98888-7777" maxlength="15" required value="${escapeHTML(simSelection.clientPhone)}" ${simSelection.needsBirth ? 'readonly' : ''}>
                     </div>
                     ${simSelection.needsBirth ? `
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label style="color:#94a3b8; font-size:10px;">SUA DATA DE NASCIMENTO:</label>
-                        <input type="date" class="pub-input" id="pub-sim-birth" required value="${escapeHTML(simSelection.birth)}">
-                        <small style="color:var(--text-muted); font-size:10px; display:block; margin-top:4px;">Para enviarmos mimos no seu aniversário! 🎁</small>
+                    <div class="form-group" style="margin-bottom:18px;">
+                        <label style="color:#94a3b8; font-size:12px; font-weight: 500; margin-bottom: 6px; display: block;">SUA DATA DE NASCIMENTO:</label>
+                        <input type="date" class="pub-input" style="font-size: 16px; padding: 14px; height: auto;" id="pub-sim-birth" required value="${escapeHTML(simSelection.birth)}">
+                        <small style="color:var(--text-muted); font-size:11px; display:block; margin-top:6px;">Para enviarmos mimos no seu aniversário! 🎁</small>
                     </div>
                     ` : ''}
                     <button type="submit" class="pub-btn-submit" id="pub-btn-submit-step1">Avançar <i class="fa-solid fa-chevron-right"></i></button>
@@ -2794,7 +2800,7 @@ function renderPhoneScreen() {
     else if (simulationStep === 2) {
         phoneScreen.innerHTML = `
             <div class="pub-header">
-                <div class="pub-logo">L</div>
+                ${logoHtml}
                 <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle">Passo 2: Escolha o Profissional</p>
             </div>
@@ -2899,7 +2905,7 @@ function renderPhoneScreen() {
 
         phoneScreen.innerHTML = `
             <div class="pub-header">
-                <div class="pub-logo">L</div>
+                ${logoHtml}
                 <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle">Passo 3: Data e Horário</p>
             </div>
@@ -2934,7 +2940,7 @@ function renderPhoneScreen() {
     else if (simulationStep === 4) {
         phoneScreen.innerHTML = `
             <div class="pub-header">
-                <div class="pub-logo">L</div>
+                ${logoHtml}
                 <h4 class="pub-title">${businessName}</h4>
                 <p class="pub-subtitle">Passo 4: Selecione o Serviço</p>
             </div>
