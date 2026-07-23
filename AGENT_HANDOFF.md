@@ -154,3 +154,9 @@
     - Quando o Caixa È aberto, o sistema varre as transaÁıes *pendentes* em dinheiro e as confirma automaticamente.
     - O Dashboard Financeiro agora permite filtrar por **PerÌodos** (Hoje, 7 Dias, 30 Dias).
     - Adicionado no painel o c·lculo de **Comissıes do PerÌodo**, utilizando a porcentagem (`commission`) gravada no perfil do profissional. O sistema c·lcula o valor real (agendamentos pagos) e o valor *Previsto* (agendamentos confirmados mas pendentes de pagamento).
+
+24. **Aprimoramento do Painel Caixa do Dia:**
+    - A visualiza√ß√£o do "Caixa do Dia" agora √© din√¢mica baseada no filtro de profissional.
+    - No modo Geral (Todos), exibe o Saldo em Gaveta, a Proje√ß√£o de Faturamento de Hoje (soma de todos os agendamentos ativos do dia) e os Gastos do Dia.
+    - No modo Profissional, exibe o Saldo em Gaveta (fixo) e m√©tricas espec√≠ficas do barbeiro: Comiss√£o Hoje, Agendamentos Hoje e Proje√ß√£o de Comiss√£o no M√™s.
+    - O layout dos filtros de Per√≠odo e Profissional no Financeiro foi ajustado para ficarem lado a lado (row e nowrap) separados por uma linha vertical divis√≥ria.
