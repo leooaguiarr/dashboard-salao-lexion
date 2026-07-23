@@ -18,6 +18,10 @@
    - A função `openEditAppointment` no `app.js` foi atualizada. Quando o modal de agendamento é aberto a partir do botão "Confirmar" da aba de **Confirmar Pagamentos** (dashboard, `mode === 'pay'`), o modal agora abre **diretamente nos campos de pagamento** e a opção/botão de alternar para "Horário" é ocultada.
    - A funcionalidade de alternar e editar horários agora fica restrita apenas à visualização padrão vinda da **Agenda**.
 
+3. **Correção de Bug de Fechamento Automático do Caixa ao Re-logar (Supabase):**
+   - Corrigido um bug silencioso no `api.js` que sobrescrevia a abertura do caixa no `localStorage` com um array vazio durante o login. Isso ocorria pois a tabela `cash_registers` (criada num script secundário) costuma não possuir a coluna `user_id` para alguns usuários que ainda não migraram as colunas de segurança (RLS). A ausência dessa coluna fazia a função `upsert()` falhar.
+   - Foi implementado um fallback no `api.js` (`migrateToCloud` e `save` genérico) para interceptar o erro de coluna ausente e fazer uma segunda tentativa de gravação sem enviar `user_id`. Assim o caixa aberto permanece salvo mesmo ao sair e entrar na conta.
+
 3. **Captura de Data de Nascimento e Aniversários no Dashboard:**
    - Adicionado novo fluxo no **Agendamento Público (Simulador/Link)**: ao inserir o WhatsApp, o sistema agora checa se o cliente já existe (via RPC `check_client_exists` no Supabase ou verificação local).
    - Se o cliente for novo, um campo de "Data de Nascimento" é exibido obrigando o preenchimento para avançar.
