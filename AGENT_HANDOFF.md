@@ -159,6 +159,18 @@
     - No modo Profissional, exibe o Saldo em Gaveta (fixo) e métricas específicas do barbeiro: Comissão Hoje, Agendamentos Hoje e Projeção de Comissão no Mês.
     - O layout dos filtros de Período e Profissional no Financeiro foi ajustado para ficarem lado a lado (row e nowrap) separados por uma linha vertical divisória.
 
+10. **Refatoração Visual da Aba Financeiro:**
+    - O bloco de "Confirmar Pagamentos", que antes ficava na aba principal do Dashboard, foi movido para a aba **Financeiro**.
+    - A aba Financeira foi reorganizada: os cartões de métricas agora não possuem mais o texto "(Mês)" fixo.
+    - O layout foi ajustado em colunas alinhadas: "Confirmar Pagamento" agora divide o espaço com "Faturamento por Serviço" e "Métodos de Pagamento", e o "Histórico de Transações" foi estreitado para focar nos dados essenciais.
+    - A coluna "Categoria" foi removida da tabela de Histórico de Transações para limpar o visual.
+
+11. **Alerta de Agendamento Duplicado na Mesma Semana:**
+    - Implementado um aviso anti-duplicidade no link de agendamento (no modo de Simulador Local e no link de Produção).
+    - Se o cliente tentar agendar um horário e já possuir outro na mesma semana, um Popup escuro bloqueia a tela listando os horários conflitantes, pedindo confirmação explícita para prosseguir ("Voltar" ou "Sim, Agendar").
+    - Criada a função RPC `check_week_appointments` no arquivo `docs/public_booking_setup.sql`. O usuário já rodou esse script no SQL Editor do Supabase.
+    - A agenda do profissional também foi estilizada para destacar horários duplicados com uma borda amarela e um ícone de "clone".
+
 ## 🛠 Arquitetura e Restrições Atuais
 
 - **Banco de Dados (Supabase):** Toda vez que um objeto é injetado localmente (`data.appointments`, `data.transactions`), a função `saveData()` o sincroniza com o backend. **Atenção extrema ao Schema:** Não adicione chaves novas (ex: `price` num agendamento) se você não tiver certeza de que a coluna existe no banco (Supabase), pois o RLS e o PostgREST irão rejeitar a query.
