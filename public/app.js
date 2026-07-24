@@ -2101,7 +2101,6 @@ function renderFinance() {
             <td data-label="Tipo"><span class="status-badge ${t.type === 'income' ? 'done' : 'no_show'}">${t.type === 'income' ? 'Entrada' : 'Saída'}</span>${pendingBadge}</td>
             <td data-label="Descrição">${t.description}</td>
             <td data-label="Profissional">${profName}</td>
-            <td data-label="Categoria">${t.category}</td>
             <td data-label="Forma de Pagto">${t.paymentMethod.toUpperCase()}</td>
             <td data-label="Valor" class="${cssClass}" style="font-weight: 700;">${sign} ${formatCurrency(t.amount)}</td>
             <td data-label="Ação" style="text-align: right;">
